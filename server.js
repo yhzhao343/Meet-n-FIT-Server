@@ -39,9 +39,14 @@ app.use(function(req, res, next) {
   res.status(404).send("This is not the address you are looking for!")
 });
 
-https.createServer({
-  key: fs.readFileSync('./config/key.pem'),
-  cert: fs.readFileSync('./config/cert.pem'),
-  passphrase: config.passphrase
-}, app).listen(port);
+// https.createServer({
+//   key: fs.readFileSync('./config/key.pem'),
+//   cert: fs.readFileSync('./config/cert.pem'),
+//   passphrase: config.passphrase
+// }, app).listen(port);
+
+https.createServer(require('localhost.daplie.com-certificates').merge({}),
+ app).listen(port, ()=>{
+  debug('Server', ["FIT server running on port: ", port].join(''))
+ });
 
