@@ -9,6 +9,8 @@ var debug           = require('./log_service').debug
 
 var Schema = mongoose.Schema;
 var user_schema = new Schema({
+                first_name: String,
+                last_name: String,
                 name: {type : String, unique: true},
                 email: String,
                 password: String,

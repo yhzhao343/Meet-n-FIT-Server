@@ -31,6 +31,8 @@ function register_user(req, res) {
             res.json({ success: false, message: 'Username already exist.' });
         } else {
             var new_user = {
+                first_name: req.body.first_name,
+                last_name: req.body.last_name,
                 name: req.body.name,
                 email: req.body.email,
                 password: req.body.password
@@ -70,7 +72,13 @@ function login_user(req, res) {
                 })
                 res.json({
                     success: true,
-                    token: token
+                    token: token,
+                    user_info: {
+                        email: user.email,
+                        first_name: user.first_name,
+                        last_name: user.last_name,
+                        name: user.name
+                    }
                 });
             })
             .catch(function() {
