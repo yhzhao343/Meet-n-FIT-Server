@@ -30,6 +30,15 @@ user_schema.methods.compare_password = function(candidate) {
 
 }
 
+user_schema.methods.update_field = function(key_value_pair) {
+    if (key_value_pair.password) {
+        key_value_pair.password = hash_pwd(key_value_pair.password)
+    }
+    User.update({_id:this._id}, key_value_pair, (err, affected) => {
+        debug("update_field", err)
+    })
+}
+
 var User = mongoose.model('User', user_schema);
 
 mongoose.connect(config.db_connect_string);
@@ -49,6 +58,8 @@ function hash_pwd(pwd) {
                  .update(pwd)
                  .digest('Base64')
 }
+
+
 
 module.exports = {
     mongoose : mongoose,

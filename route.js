@@ -8,6 +8,21 @@ var debug = log_service.debug
 
 router.post('/login', login_user)
 router.post('/register', register_user)
+router.post('/send_password', send_password)
+
+function send_password(req, res) {
+    db_service.user_findOne({email:req.body.email})
+    .then(user => {
+        if (!user) {
+            res.json({success: false, message: 'No account for this email found not found.'})
+        } else {
+            debug('send_password', user)
+            user.update_field({password:"password123"})
+            // .save()
+            // console.log("updating password");
+        }
+    })
+}
 
 function register_user(req, res) {
     db_service.user_findOne({name:req.body.name})
