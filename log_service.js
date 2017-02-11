@@ -19,7 +19,7 @@ if (path) {
         if(typeof debug_info !== 'string') {
             debug_info = JSON.stringify(debug_info)
         }
-        var debug_msg = ['@', type, ' DEBUG :', debug_info].join('')
+        var debug_msg = ['@', type, ' DEBUG :', debug_info, '\n'].join('')
         app_log_stream.write(debug_msg)
     }
 } else {
@@ -35,7 +35,7 @@ if (path) {
         if(typeof debug_info !== 'string') {
             debug_info = JSON.stringify(debug_info)
         }
-        var debug_msg = ['@', type, ' DEBUG :', debug_info].join('')
+        var debug_msg = ['@', type, ' DEBUG :', debug_info, '\n'].join('')
         console.log(debug_msg)
     }
 }

@@ -10,6 +10,7 @@ router.post('/login', login_user)
 router.post('/register', register_user)
 router.post('/send_password', send_password)
 
+
 function send_password(req, res) {
     db_service.user_findOne({email:req.body.email})
     .then(user => {

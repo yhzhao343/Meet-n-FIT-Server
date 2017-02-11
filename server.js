@@ -5,6 +5,7 @@ var fs            = require('fs')
 var bodyParser    = require('body-parser');
 var config        = require('./config/config')
 var db_service    = require('./db_service');
+var middlewares   = require('./middlewares')
 
 var User          = db_service.User
 var port          = process.env.PORT || config.port || 8080;
@@ -26,7 +27,7 @@ app.use(function(req, res, next) {
 });
 
 //Validate tokens for path that looks like: '/api/v1/*'
-app.all('/api/v1/*', [require('./middlewares').validate_request])
+app.all('/api/v1/*', [middlewares.validate_request])
 app.use('/', require('./route'))
 
 app.use(function (err, req, res, next) {
@@ -45,8 +46,20 @@ app.use(function(req, res, next) {
 //   passphrase: config.passphrase
 // }, app).listen(port);
 
-https.createServer(require('localhost.daplie.com-certificates').merge({}),
- app).listen(port, ()=>{
+https_serv = https.createServer(require('localhost.daplie.com-certificates').merge({}),
+ app)
+
+sio_serv = require('socket.io').listen(https_serv)
+
+sio_serv.use(middlewares.validate_socket_connection)
+
+sio_serv.sockets.on('connection', socket => {
+    // debug('socket on connection', socket)
+})
+
+
+https_serv.listen(port, ()=>{
   debug('Server', ["FIT server running on port: ", port].join(''))
  });
+
 

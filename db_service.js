@@ -18,7 +18,6 @@ var user_schema = new Schema({
 
 user_schema.pre('save', function(next) {
     var user = this;
-    console.log(user)
     user.password = hash_pwd(user.password);
     next();
 })
