@@ -46,17 +46,35 @@ app.use(function(req, res, next) {
 //   passphrase: config.passphrase
 // }, app).listen(port);
 
-https_serv = https.createServer(require('localhost.daplie.com-certificates').merge({}),
+var https_serv = https.createServer(require('localhost.daplie.com-certificates').merge({}),
  app)
 
-sio_serv = require('socket.io').listen(https_serv)
+var sio_serv = require('socket.io')(https_serv)
 
 sio_serv.use(middlewares.validate_socket_connection)
 
-sio_serv.sockets.on('connection', socket => {
-    // debug('socket on connection', socket)
-})
+sio_serv.on('connection', socket => {
+    debug('socketio on connection', socket.id)
+    var id = socket.id;
 
+    socket.on('disconnect', function() {
+        debug('socketio on disconnect', id)
+        db_service.user_findOne({name:id})
+        .then(user => {
+            if(user) {
+                user.update_field({online: false})
+            }
+        })
+    })
+
+    db_service.user_findOne({name:socket.id})
+    .then(user => {
+        if(user) {
+            user.update_field({online: true})
+        }
+    })
+
+})
 
 https_serv.listen(port, ()=>{
   debug('Server', ["FIT server running on port: ", port].join(''))

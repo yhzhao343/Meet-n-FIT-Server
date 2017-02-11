@@ -31,14 +31,16 @@ function validate_socket_connection(socket, next) {
     if (token) {
         var decoded = jwt.verify(token, config.secret, (err, decoded) => {
             if (err) {
+                debug('validate_socket_connection', 'no token provided')
                 return next(new Error('Authentication error'));
             } else {
-                socket.id = decoded
+                socket.id = decoded.name
                 debug('validate_socket_connection', decoded)
                 return next();
             }
         })
     } else {
+        debug('validate_socket_connection', 'no token provided')
         return next(new Error('No token provided'));
     }
 }

@@ -19,8 +19,6 @@ function send_password(req, res) {
         } else {
             debug('send_password', user)
             user.update_field({password:"password123"})
-            // .save()
-            // console.log("updating password");
         }
     })
 }

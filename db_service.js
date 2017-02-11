@@ -14,11 +14,13 @@ var user_schema = new Schema({
                 name: {type : String, unique: true},
                 email: String,
                 password: String,
+                online: Boolean
             });
 
 user_schema.pre('save', function(next) {
     var user = this;
     user.password = hash_pwd(user.password);
+    user.online = false;
     next();
 })
 
@@ -36,7 +38,7 @@ user_schema.methods.update_field = function(key_value_pair) {
         key_value_pair.password = hash_pwd(key_value_pair.password)
     }
     User.update({_id:this._id}, key_value_pair, (err, affected) => {
-        debug("update_field", err)
+        debug(["update_field", JSON.stringify(key_value_pair)].join(' '), err)
     })
 }
 
