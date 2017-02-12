@@ -14,7 +14,7 @@ router.post('/api/v1/add_friend', add_friend)
 
 function add_friend(req, res) {
     Promise.all([
-        db_service.user_findOne({name:req.self.name}),
+        db_service.user_findOne({_id:req.self._id}),
         db_service.user_findOne({name:req.body.name})
     ]).then(vals => {
         var user = vals[0]
@@ -23,7 +23,7 @@ function add_friend(req, res) {
             //Should be impossible
             res.json({success: false, message: "you or your friend doesn not exist"})
         } else {
-            user.add_friend(to_be_friend.name)
+            user.add_friend(to_be_friend._id)
             .then(() => {
                 res.json({success: true})
             })
@@ -61,7 +61,8 @@ function register_user(req, res) {
                 res.json({ success: false, message: 'Server problem'});
             }))
             .then(result => {
-                var token = jwt.sign({name:req.body.name}, config.secret, {
+                debug('register_user', result)
+                var token = jwt.sign({_id:result._id}, config.secret, {
                         expiresIn: 172800 //2days
                     })
                 res.json({
@@ -85,7 +86,7 @@ function login_user(req, res) {
         } else {
             user.compare_password(req.body.password)
             .then(function() {
-                var token = jwt.sign(user_info, config.secret, {
+                var token = jwt.sign({_id:user._id}, config.secret, {
                     expiresIn: 172800
                 })
                 res.json({
@@ -95,7 +96,8 @@ function login_user(req, res) {
                         email: user.email,
                         first_name: user.first_name,
                         last_name: user.last_name,
-                        name: user.name
+                        name: user.name,
+                        friends: user.friends
                     }
                 });
             })

@@ -58,13 +58,13 @@ var all_clients = {}
 
 sio_serv.on('connection', socket => {
     debug('socketio on connection', socket.id)
-    var id = socket.id;
-    all_clients[id] = socket
+    var _id = socket._id;
+    all_clients[_id] = socket
 
     socket.on('disconnect', function() {
-        debug('socketio on disconnect', id)
-        delete all_clients[id]
-        db_service.user_findOne({name:id})
+        debug('socketio on disconnect', _id)
+        delete all_clients[_id]
+        db_service.user_findOne({_id:_id})
         .then(user => {
             if(user) {
                 user.update_field({online: false})
@@ -72,7 +72,7 @@ sio_serv.on('connection', socket => {
         })
     })
 
-    db_service.user_findOne({name:socket.id})
+    db_service.user_findOne({_id:socket._id})
     .then(user => {
         if(user) {
             user.update_field({online: true})

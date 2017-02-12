@@ -40,7 +40,7 @@ function validate_socket_connection(socket, next) {
                 debug('validate_socket_connection', 'no token provided')
                 return next(new Error('Authentication error'));
             } else {
-                socket.id = decoded.name
+                socket._id = decoded._id
                 debug('validate_socket_connection', decoded)
                 return next();
             }
