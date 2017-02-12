@@ -4,7 +4,7 @@ var router = express.Router();
 var config = require('./config/config')
 var log_service = require('./log_service')
 var jwt = require("jsonwebtoken")
-var Promise         = require('bluebird')
+var Promise = require('bluebird')
 var debug = log_service.debug
 
 router.post('/login', login_user)
@@ -30,6 +30,17 @@ function add_friend(req, res) {
         }
     })
 }
+
+function generatePassword() {
+    var length = 8,
+        charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+        retVal = "";
+    for (var i = 0, n = charset.length; i < length; ++i) {
+        retVal += charset.charAt(Math.floor(Math.random() * n));
+    }
+    return retVal;
+}
+
 function send_password(req, res) {
     db_service.user_findOne({email:req.body.email})
     .then(user => {
@@ -37,7 +48,22 @@ function send_password(req, res) {
             res.json({success: false, message: 'No account for this email found not found.'})
         } else {
             debug('send_password', user)
-            user.update_field({password:"password123"})
+            var new_password = generatePassword();
+            user.update_field({password: new_password})
+            var email = require("emailjs");
+            var server = email.server.connect({
+                user: "meetnfit.noreply@gmail.com", 
+                password: "7FITpassword", 
+                host: "smtp.gmail.com", 
+                ssl: true 
+            });
+            server.send({
+                text: "Your password has been reset to the following:\n\n" + new_password, 
+                from: "Team FIT <meetnfit.noreply@gmail.com>", 
+                to: req.body.email,
+                subject: "Password Reset"
+                }, function(err, message) { console.log(err || message); 
+            });
         }
     })
 }
