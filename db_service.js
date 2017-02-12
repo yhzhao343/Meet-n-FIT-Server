@@ -16,7 +16,7 @@ var user_schema = new Schema({
                 password: String,
                 online: Boolean,
                 friends: [String]
-            });
+            }, {capped: true, size: 4096});
 
 user_schema.pre('save', function(next) {
     var user = this;

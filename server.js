@@ -16,7 +16,7 @@ var morgan_logger = logger.morgan_logger
 var debug         = require('./log_service').debug
 
 var MongoOplog    = require('mongo-oplog')
-var oplog         = MongoOplog(config.db_connect_string)
+var user_oplog         = MongoOplog(config.oplog_connect_string, {ns:'team_fit_test.users'})
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -78,21 +78,19 @@ sio_serv.on('connection', socket => {
             user.update_field({online: true})
         }
     })
+})
 
+// var user_stream = User.find().tailable().cursor();
+// user_stream.on('data', info => {
+//     debug(' user_stream on data', info)
+// })
+user_oplog.tail()
+user_oplog.on('update', doc => {
+    debug('oplog-insert', doc)
 })
 
 https_serv.listen(port, ()=>{
   debug('Server', ["FIT server running on port: ", port].join(''))
  });
-
-oplog.on('insert', doc => {
-    debug('   oplog insert', doc)
-})
-
-oplog.on('update', doc => {
-    debug('   oplog insert', doc)
-})
-
-
 
 
