@@ -15,6 +15,8 @@ var morgan_logger = logger.morgan_logger
 
 var debug         = require('./log_service').debug
 
+var MongoOplog    = require('mongo-oplog')
+var oplog         = MongoOplog(config.db_connect_string)
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -52,13 +54,16 @@ var https_serv = https.createServer(require('localhost.daplie.com-certificates')
 var sio_serv = require('socket.io')(https_serv)
 
 sio_serv.use(middlewares.validate_socket_connection)
+var all_clients = {}
 
 sio_serv.on('connection', socket => {
     debug('socketio on connection', socket.id)
     var id = socket.id;
+    all_clients[id] = socket
 
     socket.on('disconnect', function() {
         debug('socketio on disconnect', id)
+        delete all_clients[id]
         db_service.user_findOne({name:id})
         .then(user => {
             if(user) {
@@ -79,5 +84,15 @@ sio_serv.on('connection', socket => {
 https_serv.listen(port, ()=>{
   debug('Server', ["FIT server running on port: ", port].join(''))
  });
+
+oplog.on('insert', doc => {
+    debug('   oplog insert', doc)
+})
+
+oplog.on('update', doc => {
+    debug('   oplog insert', doc)
+})
+
+
 
 

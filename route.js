@@ -4,13 +4,32 @@ var router = express.Router();
 var config = require('./config/config')
 var log_service = require('./log_service')
 var jwt = require("jsonwebtoken")
+var Promise         = require('bluebird')
 var debug = log_service.debug
 
 router.post('/login', login_user)
 router.post('/register', register_user)
 router.post('/send_password', send_password)
+router.post('/api/v1/add_friend', add_friend)
 
-
+function add_friend(req, res) {
+    Promise.all([
+        db_service.user_findOne({name:req.self.name}),
+        db_service.user_findOne({name:req.body.name})
+    ]).then(vals => {
+        var user = vals[0]
+        var to_be_friend = vals[1]
+        if (!user || !to_be_friend) {
+            //Should be impossible
+            res.json({success: false, message: "you or your friend doesn not exist"})
+        } else {
+            user.add_friend(to_be_friend.name)
+            .then(() => {
+                res.json({success: true})
+            })
+        }
+    })
+}
 function send_password(req, res) {
     db_service.user_findOne({email:req.body.email})
     .then(user => {

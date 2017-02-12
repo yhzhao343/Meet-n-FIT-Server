@@ -8,17 +8,23 @@ module.exports = {
 }
 
 function validate_request(req, res, next) {
-    var token = (req.body && req.body.access_token) || (req.query && req.query.access_token) || req.headers['x-access-token'];
+    debug('validate_request', req.query)
+    var token = req.query['x-access-token']
     // var key = (req.body && req.body.x_key) || (req.query && req.query.x_key) || req.headers['x-key'];
+    debug('validate_request', token)
     if (token) {
         var decoded = jwt.verify(token, config.secret, (err, decoded) => {
             if (err) {
+                debug('validate_request', 'failed to validate')
                 return res.json({ success: false, message: 'Failed to authenticate token.' });
             } else {
-                req.decoded = decoded
+                debug('validate_request_pass', decoded)
+                req.self = decoded,
+                next();
             }
         })
     } else {
+        debug('validate_request', 'no token')
         return res.status(403).send({
             success: false,
             message: 'No token provided'
