@@ -86,7 +86,7 @@ sio_serv.on('connection', socket => {
 // })
 user_oplog.tail()
 user_oplog.on('update', doc => {
-    debug('oplog-insert', doc)
+    debug('oplog-update', doc)
 })
 
 https_serv.listen(port, ()=>{

@@ -52,17 +52,17 @@ function send_password(req, res) {
             user.update_field({password: new_password})
             var email = require("emailjs");
             var server = email.server.connect({
-                user: "meetnfit.noreply@gmail.com", 
-                password: "7FITpassword", 
-                host: "smtp.gmail.com", 
-                ssl: true 
+                user: "meetnfit.noreply@gmail.com",
+                password: "7FITpassword",
+                host: "smtp.gmail.com",
+                ssl: true
             });
             server.send({
-                text: "Your password has been reset to the following:\n\n" + new_password, 
-                from: "Team FIT <meetnfit.noreply@gmail.com>", 
+                text: "Your password has been reset to the following:\n\n" + new_password,
+                from: "Team FIT <meetnfit.noreply@gmail.com>",
                 to: req.body.email,
                 subject: "Password Reset"
-                }, function(err, message) { console.log(err || message); 
+                }, function(err, message) { console.log(err || message);
             });
         }
     })
@@ -79,7 +79,8 @@ function register_user(req, res) {
                 last_name: req.body.last_name,
                 name: req.body.name,
                 email: req.body.email,
-                password: req.body.password
+                password: req.body.password,
+                friends: []
             }
             new db_service.User(new_user)
             .save()
@@ -93,7 +94,14 @@ function register_user(req, res) {
                     })
                 res.json({
                     success: true,
-                    token: token
+                    token: token,
+                    user_info: {
+                        email: new_user.email,
+                        first_name: new_user.first_name,
+                        last_name: new_user.last_name,
+                        name: new_user.name,
+                        friends: []
+                    }
                 });
             })
         }
