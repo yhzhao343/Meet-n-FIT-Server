@@ -17,6 +17,18 @@ var user_schema = new Schema({
                 online: Boolean,
                 friends: [String]
             });
+var conversation = new Schema({
+                name: String,
+                // name: sort all participant's id, then concat. You
+                // can only have one conversation with one group of people
+                sentences :[{
+                    sender: String,
+                    content: String,
+                    timestamp: Date
+                }],
+                participants: [String],
+                last_update: Date
+})
 
 user_schema.pre('save', function(next) {
     var user = this;
@@ -63,6 +75,7 @@ user_schema.methods.add_friend = function(fiend_name) {
 }
 
 var User = mongoose.model('User', user_schema);
+var Conversation = mongoose.model('Conversation', conversation);
 
 mongoose.connect(config.db_connect_string);
 
@@ -95,5 +108,6 @@ function hash_pwd(pwd) {
 module.exports = {
     mongoose : mongoose,
     User : User,
-    user_findOne : user_findOne
+    user_findOne : user_findOne,
+    Conversation: Conversation
 }
