@@ -66,12 +66,20 @@ var User = mongoose.model('User', user_schema);
 
 mongoose.connect(config.db_connect_string);
 
+//TODO: add settings to user_findOne to limit the return field
 function user_findOne(obj) {
     if(obj.password) {
         obj.password = hash_pwd(obj.password)
     }
     var query = User.findOne(obj)
     debug('user_findOne', obj)
+    return query.exec().catch(db_error_logger)
+}
+
+function user_find_many(field, vals, settings) {
+    var query_json = {}
+    query_json[field] = {$in:vals}
+    var query = User.find(query_json, settings)
     return query.exec().catch(db_error_logger)
 }
 

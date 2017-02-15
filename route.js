@@ -11,7 +11,14 @@ router.post('/login', login_user)
 router.post('/register', register_user)
 router.post('/send_password', send_password)
 router.post('/api/v1/add_friend', add_friend)
+router.post('/api/v1/get_friends_info', get_friends_info)
 
+function get_friends_info(req, res) {
+    user_find_many.user_find_many('_id', req.body, {friends:0, password:0})
+    .then(friends => {
+        res.json(friends)
+    })
+}
 function add_friend(req, res) {
     Promise.all([
         db_service.user_findOne({_id:req.self._id}),
