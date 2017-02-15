@@ -103,8 +103,6 @@ function hash_pwd(pwd) {
                  .digest('Base64')
 }
 
-
-
 module.exports = {
     mongoose : mongoose,
     User : User,

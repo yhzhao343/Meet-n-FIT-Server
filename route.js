@@ -5,6 +5,7 @@ var config = require('./config/config')
 var log_service = require('./log_service')
 var jwt = require("jsonwebtoken")
 var Promise = require('bluebird')
+var realtime_serv = require('./oplog_realtime_service')
 var debug = log_service.debug
 
 router.post('/login', login_user)
@@ -20,6 +21,7 @@ function get_friends_info(req, res) {
     })
 }
 function add_friend(req, res) {
+    //TODO: maybe add update realtime_serv's friendlist
     Promise.all([
         db_service.user_findOne({_id:req.self._id}),
         db_service.user_findOne({name:req.body.name})
@@ -141,6 +143,7 @@ function login_user(req, res) {
                         friends: user.friends
                     }
                 });
+                realtime_serv.add_whom_to_notify(user._id, user.friends)
             })
             .catch(function() {
                 res.json({ success: false, message: 'Incorrect password.' });

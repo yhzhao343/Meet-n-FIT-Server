@@ -14,9 +14,9 @@ var logger        = require('./log_service')
 var morgan_logger = logger.morgan_logger
 
 var debug         = require('./log_service').debug
-
-var MongoOplog    = require('mongo-oplog')
-var user_oplog         = MongoOplog(config.oplog_connect_string, {ns:'team_fit_test.users'})
+var realtime_serv = require('./oplog_realtime_service')
+// var MongoOplog    = require('mongo-oplog')
+// var user_oplog         = MongoOplog(config.oplog_connect_string, {ns:'team_fit_test.users'})
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -54,16 +54,17 @@ var https_serv = https.createServer(require('localhost.daplie.com-certificates')
 var sio_serv = require('socket.io')(https_serv)
 
 sio_serv.use(middlewares.validate_socket_connection)
-var all_clients = {}
+// var all_clients = {}
 
 sio_serv.on('connection', socket => {
     debug('socketio on connection', socket.id)
     var _id = socket._id;
-    all_clients[_id] = socket
+    realtime_serv.add_to_watch_list(_id, socket)
 
     socket.on('disconnect', function() {
         debug('socketio on disconnect', _id)
-        delete all_clients[_id]
+        // delete all_clients[_id]
+        realtime_serv.delete_user_from_watch(_id)
         db_service.user_findOne({_id:_id})
         .then(user => {
             if(user) {
@@ -80,17 +81,10 @@ sio_serv.on('connection', socket => {
     })
 })
 
-// var user_stream = User.find().tailable().cursor();
-// user_stream.on('data', info => {
-//     debug(' user_stream on data', info)
-// })
-user_oplog.tail()
-user_oplog.on('update', doc => {
-    debug('oplog-update', doc)
-})
 
 https_serv.listen(port, ()=>{
   debug('Server', ["FIT server running on port: ", port].join(''))
  });
+realtime_serv.start_watching()
 
 
