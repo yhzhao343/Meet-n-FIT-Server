@@ -6,6 +6,7 @@ var log_service = require('./log_service')
 var jwt = require("jsonwebtoken")
 var Promise = require('bluebird')
 var realtime_serv = require('./oplog_realtime_service')
+var crypto = require('crypto');
 var debug = log_service.debug
 
 router.post('/login', login_user)
@@ -13,6 +14,7 @@ router.post('/register', register_user)
 router.post('/send_password', send_password)
 router.post('/api/v1/add_friend', add_friend)
 router.post('/api/v1/get_friends_info', get_friends_info)
+router.post('/api/v1/add_conversation', add_conversation)
 
 function get_friends_info(req, res) {
     user_find_many.user_find_many('_id', req.body, {friends:0, password:0})
@@ -20,6 +22,46 @@ function get_friends_info(req, res) {
         res.json(friends)
     })
 }
+
+function add_conversation(req, res) {
+    var self_id = req.self._id
+    var participants = req.body
+    participants.push(self_id)
+    var name = crypto.createHash('md5').update(participants.join('')).digest('hex')
+    var new_conversation = {
+        'name': name,
+        'sentences':[],
+        'participants':participants,
+        'last_update': new Date()
+    }
+    new db_service.Conversation(new_conversation)
+    .save()
+    .catch(log_service.error_logger_gen('Insert new conversation', err => {
+        res.json({ success: false, message: 'Server problem'});
+    }))
+    .then(result => {
+        debug('add_conversation', result)
+        res.json({
+            name: result.name,
+            success: true,
+            sentences:[],
+            participants:result.participants,
+            last_update: result.last_update
+        });
+        db_service.User.update(
+            {'_id': {'$in':result.participants}},
+            {'$push': {'conversations': result.name}},
+            function(err, raw) {
+                if(err) {
+                    debug('add_conversation_err', err)
+                    debug('add_conversation_raw', raw)
+                }
+            }
+        )
+    })
+}
+
+
 function add_friend(req, res) {
     //TODO: maybe add update realtime_serv's friendlist
     Promise.all([
@@ -89,7 +131,8 @@ function register_user(req, res) {
                 name: req.body.name,
                 email: req.body.email,
                 password: req.body.password,
-                friends: []
+                friends: [],
+                conversations: []
             }
             new db_service.User(new_user)
             .save()
@@ -109,7 +152,8 @@ function register_user(req, res) {
                         first_name: new_user.first_name,
                         last_name: new_user.last_name,
                         name: new_user.name,
-                        friends: []
+                        friends: [],
+                        conversations: []
                     }
                 });
             })
@@ -140,7 +184,8 @@ function login_user(req, res) {
                         first_name: user.first_name,
                         last_name: user.last_name,
                         name: user.name,
-                        friends: user.friends
+                        friends: user.friends,
+                        conversations: user.conversations
                     }
                 });
                 realtime_serv.add_whom_to_notify(user._id, user.friends)

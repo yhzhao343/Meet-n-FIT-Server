@@ -15,10 +15,11 @@ var user_schema = new Schema({
                 email: String,
                 password: String,
                 online: Boolean,
-                friends: [String]
+                friends: [String],
+                conversations: [String]
             });
 var conversation = new Schema({
-                name: String,
+                name: {type : String, unique: true},
                 // name: sort all participant's id, then concat. You
                 // can only have one conversation with one group of people
                 sentences :[{
@@ -34,7 +35,8 @@ user_schema.pre('save', function(next) {
     var user = this;
     user.password = hash_pwd(user.password);
     user.online = false;
-    user.friends = []
+    user.friends = [];
+    user.conversations = [];
     next();
 })
 

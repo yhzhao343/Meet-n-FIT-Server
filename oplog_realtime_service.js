@@ -1,6 +1,6 @@
 var config        = require('./config/config')
 var MongoOplog    = require('mongo-oplog')
-var user_oplog    = MongoOplog(config.oplog_connect_string, {ns:'team_fit_test.users'})
+var oplog         = MongoOplog(config.oplog_connect_string)
 var debug         = require('./log_service').debug
 
 
@@ -12,9 +12,9 @@ var client_friend_list = {}
 // dict
 var whom_to_notify = {}
 
-// user_oplog.tail()
+// oplog.tail()
 
-user_oplog.on('update', doc => {
+oplog.on('update', doc => {
     debug('oplog-update', doc)
     to_notify = whom_to_notify[doc.o2._id]
     debug('oplog-update-to_notify', to_notify)
@@ -33,14 +33,21 @@ user_oplog.on('update', doc => {
 
 function event_extractor(doc) {
     var o = doc.o
-    if (o) {
-        var set = doc.o['$set']
-        if(set) {
-            if ('online' in set) {
-                return {event_name: 'friends_on_off_line', content: {_id:doc.o2._id, online:set.online}}
+    if (doc.ns === "team_fit_test.users") {
+        if (o) {
+            var set = doc.o['$set']
+            if(set) {
+                if ('online' in set) {
+                    return {event_name: 'friends_on_off_line', content: {_id:doc.o2._id, online:set.online}}
+                }
             }
         }
+    } else if (doc.ns === "team_fit_test.conversations") {
+        if (o) {
+            // debug('conversations', doc)
+        }
     }
+
 }
 
 function add_to_watch_list(name, socket) {
@@ -72,7 +79,7 @@ function add_whom_to_notify(name, friends) {
 }
 
 function start_watching() {
-    user_oplog.tail()
+    oplog.tail()
 }
 module.exports = {
     add_to_watch_list: add_to_watch_list,

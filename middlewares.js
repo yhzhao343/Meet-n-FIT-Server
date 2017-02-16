@@ -50,3 +50,4 @@ function validate_socket_connection(socket, next) {
         return next(new Error('No token provided'));
     }
 }
+
