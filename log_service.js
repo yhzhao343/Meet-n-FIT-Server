@@ -13,6 +13,7 @@ if (path) {
         return function(err) {
             var error_msg = ['@', type, ' ERROR :', extra_msg, '\n', JSON.stringify(err)].join('')
             app_log_stream.write(error_msg)
+            throw err
         }
     }
     debug = function(type, debug_info) {
@@ -29,6 +30,7 @@ if (path) {
             err_handle(err)
             var error_msg = ['@', type, ' ERROR :', extra_msg, '\n', JSON.stringify(err)].join('')
             console.log(error_msg)
+            throw err
         }
     }
     debug = function(type, debug_info) {

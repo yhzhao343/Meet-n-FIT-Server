@@ -17,9 +17,12 @@ router.post('/api/v1/get_friends_info', get_friends_info)
 router.post('/api/v1/add_conversation', add_conversation)
 router.post('/change_password', change_password)
 function get_friends_info(req, res) {
-    user_find_many.user_find_many('_id', req.body, {friends:0, password:0})
+    db_service.user_find_many('_id', req.body, {friends:0, password:0})
     .then(friends => {
-        res.json(friends)
+        res.json({success:true, friends: friends})
+    })
+    .catch(err => {
+        res.json({success:false})
     })
 }
 
@@ -79,6 +82,8 @@ function add_friend(req, res) {
                 res.json({success: true})
             })
         }
+    }).catch(err => {
+        res.json({success:false})
     })
 }
 
@@ -116,6 +121,9 @@ function send_password(req, res) {
                 }, function(err, message) { console.log(err || message);
             });
         }
+    })
+    .catch(err => {
+        res.json({success:false})
     })
 }
 
@@ -159,6 +167,10 @@ function register_user(req, res) {
             })
         }
     })
+    .catch(err => {
+        debug('register_user_error', err)
+        res.json({success:false})
+    })
 }
 
 function change_password(req, res) {
@@ -175,12 +187,15 @@ function change_password(req, res) {
 		   console.log("updating password, server side")
 		   res.json({ success: true, message: 'Updated password' });
 	     user.update_field({password: req.body.new_password})
-	    })	   
+	    })
             .catch(function() {
 		    console.log("wrong password, server side")
 		   res.json({ success: false, message: 'password incorrect' });
-	})	       
-      })
+	   })
+    })
+    .catch(err => {
+      res.json({success:false})
+    })
 }
 function login_user(req, res) {
     var user_info = {
@@ -216,6 +231,9 @@ function login_user(req, res) {
                 res.json({ success: false, message: 'Incorrect password.' });
             })
         }
+    })
+    .catch(err => {
+        res.json({success:false})
     })
 }
 module.exports = router
