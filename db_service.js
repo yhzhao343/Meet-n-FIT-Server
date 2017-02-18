@@ -21,7 +21,14 @@ var user_schema = new Schema({
                 pending_friends:[String],
                 //Your friend request
                 friend_requests:[String],
-                conversations: [String]
+                conversations: [String],
+		token_allocation: [{
+			strength: Number,
+    			outdoors: Number,
+    			flexibility: Number,
+    			nutrition: Number,
+    			endurance: Number
+		}]
             })
 
 var conversation = new Schema({
