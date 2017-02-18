@@ -17,15 +17,17 @@ var whom_to_notify = {}
 oplog.on('update', doc => {
     debug('oplog-update', doc)
     to_notify = whom_to_notify[doc.o2._id]
-    debug('oplog-update-to_notify', to_notify)
-    debug('oplog-update-client_socket_list', Object.keys(client_sock_list))
+    // debug('oplog-update-to_notify', to_notify)
+    // debug('oplog-update-client_socket_list', Object.keys(client_sock_list))
 
     if(to_notify) {
         //THere are people on this server that is worth getting notified when shit happens to doc.o2._id
         var event_info = event_extractor(doc)
         to_notify.forEach(to_be_notified_user => {
             if (to_be_notified_user in client_sock_list) {
-                client_sock_list[to_be_notified_user].emit(event_info.event_name, event_info.content)
+                if (event_info) {
+                    client_sock_list[to_be_notified_user].emit(event_info.event_name, event_info.content)
+                }
             }
         })
     }

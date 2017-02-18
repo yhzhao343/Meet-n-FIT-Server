@@ -13,12 +13,101 @@ router.post('/login', login_user)
 router.post('/register', register_user)
 router.post('/send_password', send_password)
 router.post('/api/v1/add_friend', add_friend)
+router.post('/api/v1/delete_friend', delete_friend)
+
 router.post('/api/v1/get_friends_info', get_friends_info)
-// router.post('/api/v1/add_conversation', add_conversation)
+router.post('/api/v1/cancel_friend_request', cancel_friend_request)
+router.post('/api/v1/add_conversation', add_conversation)
+router.post('/api/v1/comfirm_friend_request', comfirm_friend_request)
 // router.post('/api/v1/get_id_info', get_id_info)
 
 router.post('/change_password', change_password)
 
+function delete_friend(req, res) {
+    var my_id = req.self._id
+    var to_be_deleted_friend_id = req.body.friend_id
+    var self_action = db_service.User.update(
+        {_id:my_id},
+        {'$pull': {friends: to_be_deleted_friend_id}}
+    )
+    var friend_action = db_service.User.update(
+        {_id:to_be_deleted_friend_id},
+        {'$pull': {friends:my_id}}
+    )
+    Promise.all([
+        self_action.exec(),
+        friend_action.exec()
+    ]).then(result => {
+        res.json({success:true})
+    }).catch(err => {
+        res.json({success:false})
+    })
+}
+function comfirm_friend_request(req, res) {
+    var my_id = req.self._id
+    var to_be_comfimed_friend_id = req.body.friend_id
+    var self_action = db_service.User.update(
+        {_id:my_id},
+        {
+          '$pull': {pending_friends:to_be_comfimed_friend_id},
+          '$push': {friends: to_be_comfimed_friend_id}
+        }
+    )
+    var friend_action = db_service.User.update(
+        {_id:to_be_comfimed_friend_id},
+        {
+            '$pull': {friend_requests:my_id},
+            '$push': {friends: my_id}
+        }
+    )
+    Promise.all([
+        self_action.exec(),
+        friend_action.exec(),
+        db_service.user_findOne(
+            {_id:to_be_comfimed_friend_id},
+            {
+                __v:0,
+                friends:0,
+                password:0,
+                conversations:0,
+                pending_friends: 0,
+                friend_requests: 0
+            }
+        )
+    ]).then(result => {
+        debug('confirm_friend_request', result)
+        res.json({success:true, friend_info:result[2]})
+    }).catch(err => {
+        res.json({success:false})
+    })
+}
+
+function cancel_friend_request(req, res) {
+    var my_id = req.self._id
+    var to_be_canceled_friend_id = req.body.friend_id
+    debug('cancel_friend_request', {my_id: my_id, to_be_cancel: to_be_canceled_friend_id})
+    var self_delete = db_service.User.update(
+        {_id:my_id},
+        {'$pull': {friend_requests:to_be_canceled_friend_id}}
+    )
+    var friend_delete = db_service.User.update(
+        {_id:to_be_canceled_friend_id},
+        {'$pull': {pending_friends:my_id}}
+    )
+    Promise.all([
+        self_delete.exec(),
+        friend_delete.exec()
+    ])
+    .then(result => {
+        // debug('cancel_friend_request_query_result', res)
+        res.json({success:true})
+    })
+    .catch(e => {
+        res.json({success:false})
+        debug('cancel_friend_request_error', e)
+    })
+
+}
 function get_friends_info(req, res) {
     db_service.user_find_many('_id', req.body.friends,
         {

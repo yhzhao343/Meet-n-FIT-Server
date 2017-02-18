@@ -83,7 +83,6 @@ var Conversation = mongoose.model('Conversation', conversation);
 
 mongoose.connect(config.db_connect_string);
 
-//TODO: add settings to user_findOne to limit the return field
 function user_findOne(obj, settings) {
     if(obj.password) {
         obj.password = hash_pwd(obj.password)
