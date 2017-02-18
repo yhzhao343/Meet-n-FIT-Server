@@ -16,6 +16,7 @@ router.post('/api/v1/add_friend', add_friend)
 router.post('/api/v1/get_friends_info', get_friends_info)
 router.post('/api/v1/add_conversation', add_conversation)
 router.post('/change_password', change_password)
+
 function get_friends_info(req, res) {
     db_service.user_find_many('_id', req.body, {friends:0, password:0})
     .then(friends => {
@@ -184,12 +185,12 @@ function change_password(req, res) {
       .then(user => {
          user.compare_password(req.body.password)
            .then(function() {
-		   console.log("updating password, server side")
-		   res.json({ success: true, message: 'Updated password' });
+            debug('change_password', "updating password")
+		    res.json({ success: true, message: 'Updated password' });
 	     user.update_field({password: req.body.new_password})
 	    })
-            .catch(function() {
-		    console.log("wrong password, server side")
+        .catch(function() {
+            debug('change_password', "wrong password")
 		   res.json({ success: false, message: 'password incorrect' });
 	   })
     })
@@ -201,7 +202,7 @@ function login_user(req, res) {
     var user_info = {
         name : req.body.name,
     }
-    console.log(user_info)
+    debug('login_user', user_info)
     db_service.user_findOne(user_info)
     .then(user => {
         debug('login_user', user)
