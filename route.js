@@ -18,7 +18,16 @@ router.post('/api/v1/add_conversation', add_conversation)
 router.post('/change_password', change_password)
 
 function get_friends_info(req, res) {
-    db_service.user_find_many('_id', req.body, {friends:0, password:0})
+    db_service.user_find_many('_id', req.body,
+        {
+            __v:0
+            friends:0,
+            password:0,
+            conversations:0,
+            pending_friends: 0,
+            friend_requests: 0
+        }
+    )
     .then(friends => {
         res.json({success:true, friends: friends})
     })
@@ -69,8 +78,27 @@ function add_conversation(req, res) {
 function add_friend(req, res) {
     //TODO: maybe add update realtime_serv's friendlist
     Promise.all([
-        db_service.user_findOne({_id:req.self._id}),
-        db_service.user_findOne({name:req.body.name})
+        db_service.user_findOne({_id:req.self._id},
+            {
+                __v:0,
+                friends:0,
+                password:0,
+                conversations:0,
+                pending_friends: 0,
+                friend_requests: 0
+            }
+        ),
+        db_service.user_findOne({name:req.body.name},
+            {
+                __v:0,
+                friends:0,
+                password:0,
+                conversations:0,
+                pending_friends: 0,
+                friend_requests: 0
+            }
+
+        )
     ]).then(vals => {
         var user = vals[0]
         var to_be_friend = vals[1]
@@ -80,7 +108,7 @@ function add_friend(req, res) {
         } else {
             user.add_friend(to_be_friend._id)
             .then(() => {
-                res.json({success: true})
+                res.json({success: true, to_be_friend: to_be_friend})
             })
         }
     }).catch(err => {
@@ -140,8 +168,6 @@ function register_user(req, res) {
                 name: req.body.name,
                 email: req.body.email,
                 password: req.body.password,
-                friends: [],
-                conversations: []
             }
             new db_service.User(new_user)
             .save()
@@ -157,12 +183,15 @@ function register_user(req, res) {
                     success: true,
                     token: token,
                     user_info: {
+                        _id: result._id,
                         email: new_user.email,
                         first_name: new_user.first_name,
                         last_name: new_user.last_name,
                         name: new_user.name,
                         friends: [],
-                        conversations: []
+                        conversations: [],
+                        pending_friends: [],
+                        friend_request: []
                     }
                 });
             })
@@ -203,7 +232,7 @@ function login_user(req, res) {
         name : req.body.name,
     }
     debug('login_user', user_info)
-    db_service.user_findOne(user_info)
+    db_service.user_findOne(user_info, {})
     .then(user => {
         debug('login_user', user)
         if (!user) {
@@ -218,12 +247,15 @@ function login_user(req, res) {
                     success: true,
                     token: token,
                     user_info: {
+                        _id: user._id,
                         email: user.email,
                         first_name: user.first_name,
                         last_name: user.last_name,
                         name: user.name,
                         friends: user.friends,
-                        conversations: user.conversations
+                        conversations: user.conversations,
+                        pending_friends: user.pending_friends,
+                        friend_requests: user.friend_requests
                     }
                 });
                 realtime_serv.add_whom_to_notify(user._id, user.friends)

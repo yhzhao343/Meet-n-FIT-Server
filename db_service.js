@@ -15,9 +15,15 @@ var user_schema = new Schema({
                 email: String,
                 password: String,
                 online: Boolean,
+                //Your friend list
                 friends: [String],
+                //Friend requests pending your approval
+                pending_friends:[String],
+                //Your friend request
+                friend_requests:[String],
                 conversations: [String]
-            });
+            })
+
 var conversation = new Schema({
                 name: {type : String, unique: true},
                 // name: sort all participant's id, then concat. You
@@ -58,20 +64,16 @@ user_schema.methods.update_field = function(key_value_pair) {
     })
 }
 
-user_schema.methods.add_friend = function(fiend_name) {
+user_schema.methods.add_friend = function(fiend_id) {
     var my_id = this._id
-    return new Promise(function(resolve, reject) {
-        User.update({_id:my_id},
-                    {$push:{friends:fiend_name}},
-                    (err, affected) => {
-                        // debug('add_friend', this._id)
-                        if (err) {
-                            reject(err)
-                        } else {
-                            resolve()
-                        }
-                    })
-    })
+    var add_self_friend_request = User.update({_id:my_id},
+                {$push:{friend_requests:fiend_id}})
+    var add_friend_pending = User.update({_id:fiend_id},
+                {$push:{pending_friends:my_id}})
+    return Promise.all([
+        add_self_friend_request.exec(),
+        add_friend_pending.exec()
+    ])
 
 
 }
@@ -82,11 +84,11 @@ var Conversation = mongoose.model('Conversation', conversation);
 mongoose.connect(config.db_connect_string);
 
 //TODO: add settings to user_findOne to limit the return field
-function user_findOne(obj) {
+function user_findOne(obj, settings) {
     if(obj.password) {
         obj.password = hash_pwd(obj.password)
     }
-    var query = User.findOne(obj)
+    var query = User.findOne(obj, settings || {})
     debug('user_findOne', obj)
     return query.exec().catch(db_error_logger)
 }
@@ -94,7 +96,7 @@ function user_findOne(obj) {
 function user_find_many(field, vals, settings) {
     var query_json = {}
     query_json[field] = {$in:vals}
-    var query = User.find(query_json, settings)
+    var query = User.find(query_json, settings || {})
     return query.exec().catch(db_error_logger)
 }
 
