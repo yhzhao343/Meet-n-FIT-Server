@@ -76,6 +76,8 @@ function comfirm_friend_request(req, res) {
         )
     ]).then(result => {
         debug('confirm_friend_request', result)
+        realtime_serv.add_whom_to_notify(req.self._id, [req.body.friend_id])
+        realtime_serv.add_whom_to_notify(req.body.friend_id, [req.self._id])
         res.json({success:true, friend_info:result[2]})
     }).catch(err => {
         res.json({success:false})
