@@ -14,13 +14,15 @@ router.post('/register', register_user)
 router.post('/send_password', send_password)
 router.post('/api/v1/add_friend', add_friend)
 router.post('/api/v1/get_friends_info', get_friends_info)
-router.post('/api/v1/add_conversation', add_conversation)
+// router.post('/api/v1/add_conversation', add_conversation)
+// router.post('/api/v1/get_id_info', get_id_info)
+
 router.post('/change_password', change_password)
 
 function get_friends_info(req, res) {
-    db_service.user_find_many('_id', req.body,
+    db_service.user_find_many('_id', req.body.friends,
         {
-            __v:0
+            __v:0,
             friends:0,
             password:0,
             conversations:0,
@@ -35,6 +37,25 @@ function get_friends_info(req, res) {
         res.json({success:false})
     })
 }
+
+// function get_id_info(req, res) {
+//     db_service.user_findOne({_id:req.body},
+//         {
+//             __v:0,
+//             friends:0,
+//             password:0,
+//             conversations:0,
+//             pending_friends: 0,
+//             friend_requests: 0
+//         }
+//     ).then(user_info => {
+//         if (user_info) {
+//             res.json({success:true, user_info: user_info})
+//         } else {
+//             res.json({success:false})
+//         }
+//     })
+// }
 
 function add_conversation(req, res) {
     var self_id = req.self._id

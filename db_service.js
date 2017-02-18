@@ -111,5 +111,6 @@ module.exports = {
     mongoose : mongoose,
     User : User,
     user_findOne : user_findOne,
+    user_find_many: user_find_many,
     Conversation: Conversation
 }
