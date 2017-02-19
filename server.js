@@ -60,6 +60,11 @@ sio_serv.on('connection', socket => {
     debug('socketio on connection', socket.id)
     var _id = socket._id;
     realtime_serv.add_to_watch_list(_id, socket)
+    db_service.user_findOne({_id, _id}, {friends:1})
+    .then(user => {
+        realtime_serv.add_whom_to_notify(user._id, user.friends)
+    })
+
 
     socket.on('disconnect', function() {
         debug('socketio on disconnect', _id)

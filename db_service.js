@@ -21,7 +21,9 @@ var user_schema = new Schema({
                 pending_friends:[String],
                 //Your friend request
                 friend_requests:[String],
-                conversations: [String]
+                conversations: [String],
+                //ugly cheating way of monitoring changes
+                _comment: String
             })
 
 var conversation = new Schema({
@@ -34,7 +36,9 @@ var conversation = new Schema({
                     timestamp: Date
                 }],
                 participants: [String],
-                last_update: Date
+                last_update: Date,
+                //ugly cheating way of monitoring changes
+                _comment: String
 })
 
 user_schema.pre('save', function(next) {
@@ -64,12 +68,20 @@ user_schema.methods.update_field = function(key_value_pair) {
     })
 }
 
-user_schema.methods.add_friend = function(fiend_id) {
+user_schema.methods.add_friend = function(fiend_id, my_info) {
     var my_id = this._id
     var add_self_friend_request = User.update({_id:my_id},
                 {$push:{friend_requests:fiend_id}})
     var add_friend_pending = User.update({_id:fiend_id},
-                {$push:{pending_friends:my_id}})
+                {
+                    $set: {
+                        _comment: JSON.stringify({
+                            event_name:"new_friend_request",
+                            content:{friend_id: my_id, friend_info: my_info}
+                        })
+                    },
+                    $push:{pending_friends:my_id}
+                })
     return Promise.all([
         add_self_friend_request.exec(),
         add_friend_pending.exec()

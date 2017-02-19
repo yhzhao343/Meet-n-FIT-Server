@@ -28,11 +28,17 @@ function delete_friend(req, res) {
     var to_be_deleted_friend_id = req.body.friend_id
     var self_action = db_service.User.update(
         {_id:my_id},
-        {'$pull': {friends: to_be_deleted_friend_id}}
+        {
+            '$pull': {friends: to_be_deleted_friend_id},
+        }
     )
     var friend_action = db_service.User.update(
         {_id:to_be_deleted_friend_id},
-        {'$pull': {friends:my_id}}
+        {
+            '$pull': {friends:my_id},
+            '$set': {_comment: JSON.stringify({event_name:"del_friend", content: {friend_id: my_id}})}
+
+        }
     )
     Promise.all([
         self_action.exec(),
@@ -50,14 +56,15 @@ function comfirm_friend_request(req, res) {
         {_id:my_id},
         {
           '$pull': {pending_friends:to_be_comfimed_friend_id},
-          '$push': {friends: to_be_comfimed_friend_id}
+          '$push': {friends: to_be_comfimed_friend_id},
         }
     )
     var friend_action = db_service.User.update(
         {_id:to_be_comfimed_friend_id},
         {
             '$pull': {friend_requests:my_id},
-            '$push': {friends: my_id}
+            '$push': {friends: my_id},
+            '$set': {_comment: JSON.stringify({event_name:"add_friend", content:{friend_id: my_id}})}
         }
     )
     Promise.all([
@@ -76,8 +83,8 @@ function comfirm_friend_request(req, res) {
         )
     ]).then(result => {
         debug('confirm_friend_request', result)
-        realtime_serv.add_whom_to_notify(req.self._id, [req.body.friend_id])
-        realtime_serv.add_whom_to_notify(req.body.friend_id, [req.self._id])
+        // realtime_serv.add_whom_to_notify(req.self._id, [req.body.friend_id])
+        // realtime_serv.add_whom_to_notify(req.body.friend_id, [req.self._id])
         res.json({success:true, friend_info:result[2]})
     }).catch(err => {
         res.json({success:false})
@@ -90,11 +97,17 @@ function cancel_friend_request(req, res) {
     debug('cancel_friend_request', {my_id: my_id, to_be_cancel: to_be_canceled_friend_id})
     var self_delete = db_service.User.update(
         {_id:my_id},
-        {'$pull': {friend_requests:to_be_canceled_friend_id}}
+        {
+            '$pull': {friend_requests:to_be_canceled_friend_id}
+        }
     )
     var friend_delete = db_service.User.update(
         {_id:to_be_canceled_friend_id},
-        {'$pull': {pending_friends:my_id}}
+        {
+            '$pull': {pending_friends:my_id},
+            '$set': {_comment: JSON.stringify({event_name:"del_pending_friends", content: {friend_id:my_id}})}
+
+        }
     )
     Promise.all([
         self_delete.exec(),
@@ -188,7 +201,6 @@ function add_conversation(req, res) {
 
 
 function add_friend(req, res) {
-    //TODO: maybe add update realtime_serv's friendlist
     Promise.all([
         db_service.user_findOne({_id:req.self._id},
             {
@@ -218,7 +230,7 @@ function add_friend(req, res) {
             //Should be impossible
             res.json({success: false, message: "you or your friend doesn not exist"})
         } else {
-            user.add_friend(to_be_friend._id)
+            user.add_friend(to_be_friend._id, user)
             .then(() => {
                 res.json({success: true, to_be_friend: to_be_friend})
             })
@@ -370,7 +382,6 @@ function login_user(req, res) {
                         friend_requests: user.friend_requests
                     }
                 });
-                realtime_serv.add_whom_to_notify(user._id, user.friends)
             })
             .catch(function() {
                 res.json({ success: false, message: 'Incorrect password.' });
