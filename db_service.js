@@ -26,13 +26,13 @@ var user_schema = new Schema({
                 //ugly cheating way of monitoring changes
                 _comment: String,
 
-        		token_allocation: [{
+        		token_allocation: {
         			strength: Number,
-            			outdoors: Number,
-            			flexibility: Number,
-            			nutrition: Number,
-            			endurance: Number
-        		}]
+            		outdoors: Number,
+            		flexibility: Number,
+            		nutrition: Number,
+            		endurance: Number
+        		}
             })
 
 var conversation = new Schema({
@@ -56,6 +56,11 @@ user_schema.pre('save', function(next) {
     user.online = false;
     user.friends = [];
     user.conversations = [];
+    user.token_allocation.strength = 0
+    user.token_allocation.outdoors = 0
+    user.token_allocation.flexibility = 0
+    user.token_allocation.nutrition = 0
+    user.token_allocation.endurance = 0
     next();
 })
 
