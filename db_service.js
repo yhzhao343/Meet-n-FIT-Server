@@ -22,8 +22,17 @@ var user_schema = new Schema({
                 //Your friend request
                 friend_requests:[String],
                 conversations: [String],
+
                 //ugly cheating way of monitoring changes
-                _comment: String
+                _comment: String,
+
+        		token_allocation: [{
+        			strength: Number,
+            			outdoors: Number,
+            			flexibility: Number,
+            			nutrition: Number,
+            			endurance: Number
+        		}]
             })
 
 var conversation = new Schema({

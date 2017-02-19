@@ -25,10 +25,9 @@ oplog.on('update', doc => {
                 delete_whom_to_notify(doc.o2._id, [event_info.content.friend_id])
                 delete_whom_to_notify(event_info.content.friend_id, [doc.o2._id])
 
-            } else if (event_info.event_name === 'del_friend') {
+            } else if (event_info.event_name === 'add_friend') {
                 add_whom_to_notify(doc.o2._id, [event_info.content.friend_id])
                 add_whom_to_notify(event_info.content.friend_id, [doc.o2._id])
-
             }
             self_sock.emit(event_info.event_name, event_info.content)
         }
