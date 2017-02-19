@@ -19,6 +19,7 @@ router.post('/api/v1/get_friends_info', get_friends_info)
 router.post('/api/v1/cancel_friend_request', cancel_friend_request)
 router.post('/api/v1/add_conversation', add_conversation)
 router.post('/api/v1/comfirm_friend_request', comfirm_friend_request)
+router.post('/api/v1/refuse_friend', refuse_friend)
 // router.post('/api/v1/get_id_info', get_id_info)
 
 router.post('/change_password', change_password)
@@ -89,6 +90,33 @@ function comfirm_friend_request(req, res) {
     }).catch(err => {
         res.json({success:false})
     })
+}
+
+function refuse_friend(req, res) {
+    var my_id = req.self._id
+    var to_be_refused_friend_id = req.body.friend_id
+    var self_action = db_service.User.update(
+        {_id:my_id},
+        {
+          '$pull': {pending_friends:to_be_refused_friend_id},
+        }
+    )
+    var friend_action = db_service.User.update(
+        {_id:to_be_refused_friend_id},
+        {
+            '$pull': {friend_requests:my_id},
+            '$set': {_comment: JSON.stringify({event_name:"refuse_friend_request", content:{friend_id: my_id}})}
+        }
+    )
+    Promise.all([
+        self_action.exec(),
+        friend_action.exec()
+    ]).then(result => {
+        res.json({success:true})
+    }).catch(e => {
+        res.json({success:false})
+    })
+
 }
 
 function cancel_friend_request(req, res) {
@@ -315,7 +343,7 @@ function register_user(req, res) {
                         friends: [],
                         conversations: [],
                         pending_friends: [],
-                        friend_request: []
+                        friend_requests: []
                     }
                 });
             })
