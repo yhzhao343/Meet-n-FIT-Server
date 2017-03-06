@@ -17,6 +17,8 @@ var debug         = require('./log_service').debug
 var realtime_serv = require('./oplog_realtime_service')
 // var MongoOplog    = require('mongo-oplog')
 // var user_oplog         = MongoOplog(config.oplog_connect_string, {ns:'team_fit_test.users'})
+var update_field = db_service.update_field
+var compare_password = db_service.compare_password
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -73,7 +75,7 @@ sio_serv.on('connection', socket => {
         db_service.user_findOne({_id:_id})
         .then(user => {
             if(user) {
-                user.update_field({online: false})
+                update_field(user, {online: false})
             }
         })
     })
@@ -81,7 +83,7 @@ sio_serv.on('connection', socket => {
     db_service.user_findOne({_id:socket._id})
     .then(user => {
         if(user) {
-            user.update_field({online: true})
+            update_field(user, {online: true})
         }
     })
 })

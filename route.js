@@ -8,6 +8,8 @@ var Promise = require('bluebird')
 var realtime_serv = require('./oplog_realtime_service')
 var crypto = require('crypto');
 var debug = log_service.debug
+var update_field = db_service.update_field
+var compare_password = db_service.compare_password
 
 router.post('/login', login_user)
 router.post('/register', register_user)
@@ -42,8 +44,8 @@ function delete_friend(req, res) {
         }
     )
     Promise.all([
-        self_action.exec(),
-        friend_action.exec()
+        self_action.lean().exec(),
+        friend_action.lean().exec()
     ]).then(result => {
         res.json({success:true})
     }).catch(err => {
@@ -69,8 +71,8 @@ function comfirm_friend_request(req, res) {
         }
     )
     Promise.all([
-        self_action.exec(),
-        friend_action.exec(),
+        self_action.lean().exec(),
+        friend_action.lean().exec(),
         db_service.user_findOne(
             {_id:to_be_comfimed_friend_id},
             {
@@ -109,8 +111,8 @@ function refuse_friend(req, res) {
         }
     )
     Promise.all([
-        self_action.exec(),
-        friend_action.exec()
+        self_action.lean().exec(),
+        friend_action.lean().exec()
     ]).then(result => {
         res.json({success:true})
     }).catch(e => {
@@ -138,8 +140,8 @@ function cancel_friend_request(req, res) {
         }
     )
     Promise.all([
-        self_delete.exec(),
-        friend_delete.exec()
+        self_delete.lean().exec(),
+        friend_delete.lean().exec()
     ])
     .then(result => {
         // debug('cancel_friend_request_query_result', res)
@@ -286,7 +288,8 @@ function send_password(req, res) {
         } else {
             debug('send_password', user)
             var new_password = generatePassword();
-            user.update_field({password: new_password})
+            // user.update_field({password: new_password})
+            update_field(user, {password: new_password})
             var email = require("emailjs");
             var server = email.server.connect({
                 user: "meetnfit.noreply@gmail.com",
@@ -364,11 +367,13 @@ function change_password(req, res) {
   }
     db_service.user_findOne(user_info)
       .then(user => {
-         user.compare_password(req.body.password)
+        compare_password(user, req.body.password)
+         // user.compare_password(req.body.password)
            .then(function() {
             debug('change_password', "updating password")
 		    res.json({ success: true, message: 'Updated password' });
-	     user.update_field({password: req.body.new_password})
+	     // user.update_field({password: req.body.new_password})
+         update_field(user, {password: req.body.new_password})
 	    })
         .catch(function() {
             debug('change_password', "wrong password")
@@ -390,7 +395,8 @@ function login_user(req, res) {
         if (!user) {
             res.json({ success: false, message: 'User not found.' });
         } else {
-            user.compare_password(req.body.password)
+            compare_password(user, req.body.password)
+            // user.compare_password(req.body.password)
             .then(function() {
                 var token = jwt.sign({_id:user._id}, config.secret, {
                     expiresIn: 172800

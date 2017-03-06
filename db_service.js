@@ -64,20 +64,37 @@ user_schema.pre('save', function(next) {
     next();
 })
 
-user_schema.methods.compare_password = function(candidate) {
-    match = hash_pwd(candidate) == this.password;
+// user_schema.methods.compare_password = function(candidate) {
+//     match = hash_pwd(candidate) == this.password;
+//     if (match) {
+//         return Promise.resolve(match);
+//     }
+//     return Promise.reject(match);
+
+// }
+function compare_password(user, candidate) {
+    match = hash_pwd(candidate) == user.password;
     if (match) {
         return Promise.resolve(match);
     }
     return Promise.reject(match);
-
 }
 
-user_schema.methods.update_field = function(key_value_pair) {
-    if (key_value_pair.password) {
+// user_schema.methods.update_field = function(key_value_pair) {
+//     if (key_value_pair.password) {
+//         key_value_pair.password = hash_pwd(key_value_pair.password)
+//     }
+//     User.update({_id:this._id}, key_value_pair, (err, affected) => {
+//         debug(["update_field", JSON.stringify(key_value_pair)].join(' '), err)
+//     })
+// }
+
+function update_field(user, key_value_pair) {
+    if(key_value_pair.password) {
         key_value_pair.password = hash_pwd(key_value_pair.password)
     }
-    User.update({_id:this._id}, key_value_pair, (err, affected) => {
+    var query = User.update({_id:user._id}, key_value_pair)
+    query.lean().exec().then((err, affected) => {
         debug(["update_field", JSON.stringify(key_value_pair)].join(' '), err)
     })
 }
@@ -97,8 +114,8 @@ user_schema.methods.add_friend = function(fiend_id, my_info) {
                     $push:{pending_friends:my_id}
                 })
     return Promise.all([
-        add_self_friend_request.exec(),
-        add_friend_pending.exec()
+        add_self_friend_request.lean().exec(),
+        add_friend_pending.lean().exec()
     ])
 
 
@@ -115,14 +132,14 @@ function user_findOne(obj, settings) {
     }
     var query = User.findOne(obj, settings || {})
     debug('user_findOne', obj)
-    return query.exec().catch(db_error_logger)
+    return query.lean().exec().catch(db_error_logger)
 }
 
 function user_find_many(field, vals, settings) {
     var query_json = {}
     query_json[field] = {$in:vals}
     var query = User.find(query_json, settings || {})
-    return query.exec().catch(db_error_logger)
+    return query.lean().exec().catch(db_error_logger)
 }
 
 
@@ -137,5 +154,7 @@ module.exports = {
     User : User,
     user_findOne : user_findOne,
     user_find_many: user_find_many,
-    Conversation: Conversation
+    Conversation: Conversation,
+    compare_password: compare_password,
+    update_field: update_field
 }
