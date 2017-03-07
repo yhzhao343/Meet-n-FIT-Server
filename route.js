@@ -195,37 +195,46 @@ function add_conversation(req, res) {
     var self_id = req.self._id
     var participants = req.body
     participants.push(self_id)
-    var name = crypto.createHash('md5').update(participants.join('')).digest('hex')
-    var new_conversation = {
-        'name': name,
-        'sentences':[],
-        'participants':participants,
-        'last_update': new Date()
-    }
-    new db_service.Conversation(new_conversation)
-    .save()
-    .catch(log_service.error_logger_gen('Insert new conversation', err => {
-        res.json({ success: false, message: 'Server problem'});
-    }))
-    .then(result => {
-        debug('add_conversation', result)
-        res.json({
-            name: result.name,
-            success: true,
-            sentences:[],
-            participants:result.participants,
-            last_update: result.last_update
-        });
-        db_service.User.update(
-            {'_id': {'$in':result.participants}},
-            {'$push': {'conversations': result.name}},
-            function(err, raw) {
-                if(err) {
-                    debug('add_conversation_err', err)
-                    debug('add_conversation_raw', raw)
-                }
+    var name = crypto.createHash('md5').update(participants.sort().join('')).digest('hex')
+
+    var query = db_service.Conversation.findOne({name:name})
+    query.lean().exec()
+    .then(conversation => {
+        if (conversation) {
+            res.json({success:false})
+        } else {
+            var new_conversation = {
+                'name': name,
+                'sentences':[],
+                'participants':participants,
+                'last_update': new Date()
             }
-        )
+            new db_service.Conversation(new_conversation)
+            .save()
+            .catch(log_service.error_logger_gen('Insert new conversation', err => {
+                res.json({ success: false, message: 'Server problem'});
+            }))
+            .then(result => {
+                debug('add_conversation', result)
+                res.json({
+                    name: result.name,
+                    success: true,
+                    sentences:[],
+                    participants:result.participants,
+                    last_update: result.last_update
+                });
+                db_service.User.update(
+                    {'_id': {'$in':result.participants}},
+                    {'$push': {'conversations': result.name}},
+                    function(err, raw) {
+                        if(err) {
+                            debug('add_conversation_err', err)
+                            debug('add_conversation_raw', raw)
+                        }
+                    }
+                )
+            })
+        }
     })
 }
 
@@ -346,7 +355,8 @@ function register_user(req, res) {
                         friends: [],
                         conversations: [],
                         pending_friends: [],
-                        friend_requests: []
+                        friend_requests: [],
+                        token_allocation: result.token_allocation
                     }
                 });
             })
@@ -413,7 +423,8 @@ function login_user(req, res) {
                         friends: user.friends,
                         conversations: user.conversations,
                         pending_friends: user.pending_friends,
-                        friend_requests: user.friend_requests
+                        friend_requests: user.friend_requests,
+                        token_allocation: user.token_allocation
                     }
                 });
             })
