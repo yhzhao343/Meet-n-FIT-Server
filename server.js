@@ -11,7 +11,7 @@ var User          = db_service.User
 var port          = process.env.PORT || config.port || 8080;
 var app           = express();
 var logger        = require('./log_service')
-var morgan_logger = logger.morgan_logger
+// var morgan_logger = logger.morgan_logger
 
 var debug         = require('./log_service').debug
 var realtime_serv = require('./oplog_realtime_service')
@@ -22,7 +22,7 @@ var compare_password = db_service.compare_password
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(morgan_logger);
+// app.use(morgan_logger);
 app.use(function(req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST');

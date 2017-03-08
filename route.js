@@ -44,8 +44,8 @@ function delete_friend(req, res) {
         }
     )
     Promise.all([
-        self_action.lean().exec(),
-        friend_action.lean().exec()
+        self_action.exec(),
+        friend_action.exec()
     ]).then(result => {
         res.json({success:true})
     }).catch(err => {
@@ -71,8 +71,8 @@ function comfirm_friend_request(req, res) {
         }
     )
     Promise.all([
-        self_action.lean().exec(),
-        friend_action.lean().exec(),
+        self_action.exec(),
+        friend_action.exec(),
         db_service.user_findOne(
             {_id:to_be_comfimed_friend_id},
             {
@@ -111,8 +111,8 @@ function refuse_friend(req, res) {
         }
     )
     Promise.all([
-        self_action.lean().exec(),
-        friend_action.lean().exec()
+        self_action.exec(),
+        friend_action.exec()
     ]).then(result => {
         res.json({success:true})
     }).catch(e => {
@@ -140,8 +140,8 @@ function cancel_friend_request(req, res) {
         }
     )
     Promise.all([
-        self_delete.lean().exec(),
-        friend_delete.lean().exec()
+        self_delete.exec(),
+        friend_delete.exec()
     ])
     .then(result => {
         // debug('cancel_friend_request_query_result', res)
@@ -153,16 +153,19 @@ function cancel_friend_request(req, res) {
     })
 
 }
+var default_retrieve_settings = {
+                __v:0,
+                friends:0,
+                password:0,
+                conversations:0,
+                pending_friends: 0,
+                friend_requests: 0,
+                _comment: 0,
+            }
+
 function get_friends_info(req, res) {
     db_service.user_find_many('_id', req.body.friends,
-        {
-            __v:0,
-            friends:0,
-            password:0,
-            conversations:0,
-            pending_friends: 0,
-            friend_requests: 0
-        }
+        default_retrieve_settings
     )
     .then(friends => {
         res.json({success:true, friends: friends})
@@ -241,40 +244,53 @@ function add_conversation(req, res) {
 
 function add_friend(req, res) {
     Promise.all([
-        db_service.user_findOne({_id:req.self._id},
-            {
-                __v:0,
-                friends:0,
-                password:0,
-                conversations:0,
-                pending_friends: 0,
-                friend_requests: 0
-            }
+        db_service.user_findOne(
+            {_id:req.self._id},
+            default_retrieve_settings
         ),
-        db_service.user_findOne({name:req.body.name},
-            {
-                __v:0,
-                friends:0,
-                password:0,
-                conversations:0,
-                pending_friends: 0,
-                friend_requests: 0
-            }
-
+        db_service.user_findOne(
+            {name:req.body.name},
+            default_retrieve_settings
         )
     ]).then(vals => {
         var user = vals[0]
         var to_be_friend = vals[1]
+        // debug("add_friend", {user:user, to_be_friend: to_be_friend})
         if (!user || !to_be_friend) {
             //Should be impossible
             res.json({success: false, message: "you or your friend doesn not exist"})
         } else {
-            user.add_friend(to_be_friend._id, user)
+            // add_friend_request(user, to_be_friend._id)
+            // user.add_friend(to_be_friend._id, user)
+            var add_self_friend_request = db_service.User.update(
+                    {_id: user._id},
+                    {$push:{friend_requests:to_be_friend._id}}
+                )
+            var add_friend_pending = db_service.User.update(
+                    {_id: to_be_friend._id},
+                    {$push: {pending_friends: user._id}}
+                )
+            var update_comment = db_service.User.update(
+                    {_id: to_be_friend._id},
+                    {$set: {
+                            _comment: JSON.stringify({
+                                event_name:"new_friend_request",
+                                content:{friend_info: user}
+                            })
+                        }
+                    }
+                )
+            Promise.all([
+                add_self_friend_request.exec(),
+                add_friend_pending.exec(),
+                update_comment.exec(),
+            ])
             .then(() => {
                 res.json({success: true, to_be_friend: to_be_friend})
             })
         }
-    }).catch(err => {
+    }).catch((err) => {
+        debug("add_friend_request", err)
         res.json({success:false})
     })
 }

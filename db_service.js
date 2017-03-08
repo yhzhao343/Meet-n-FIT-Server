@@ -50,6 +50,10 @@ var conversation = new Schema({
                 _comment: String
 })
 
+var User = mongoose.model('User', user_schema);
+var Conversation = mongoose.model('Conversation', conversation);
+mongoose.connect(config.db_connect_string);
+
 user_schema.pre('save', function(next) {
     var user = this;
     user.password = hash_pwd(user.password);
@@ -61,17 +65,10 @@ user_schema.pre('save', function(next) {
     user.token_allocation.flexibility = 0
     user.token_allocation.nutrition = 0
     user.token_allocation.endurance = 0
+    user._comment = ''
     next();
 })
 
-// user_schema.methods.compare_password = function(candidate) {
-//     match = hash_pwd(candidate) == this.password;
-//     if (match) {
-//         return Promise.resolve(match);
-//     }
-//     return Promise.reject(match);
-
-// }
 function compare_password(user, candidate) {
     match = hash_pwd(candidate) == user.password;
     if (match) {
@@ -80,51 +77,41 @@ function compare_password(user, candidate) {
     return Promise.reject(match);
 }
 
-// user_schema.methods.update_field = function(key_value_pair) {
-//     if (key_value_pair.password) {
-//         key_value_pair.password = hash_pwd(key_value_pair.password)
-//     }
-//     User.update({_id:this._id}, key_value_pair, (err, affected) => {
-//         debug(["update_field", JSON.stringify(key_value_pair)].join(' '), err)
-//     })
-// }
-
 function update_field(user, key_value_pair) {
     if(key_value_pair.password) {
         key_value_pair.password = hash_pwd(key_value_pair.password)
     }
     var query = User.update({_id:user._id}, key_value_pair)
-    query.lean().exec().then((err, affected) => {
+    query.then((err, affected) => {
         debug(["update_field", JSON.stringify(key_value_pair)].join(' '), err)
     })
 }
 
-user_schema.methods.add_friend = function(fiend_id, my_info) {
-    var my_id = this._id
-    var add_self_friend_request = User.update({_id:my_id},
-                {$push:{friend_requests:fiend_id}})
-    var add_friend_pending = User.update({_id:fiend_id},
-                {
-                    $set: {
-                        _comment: JSON.stringify({
-                            event_name:"new_friend_request",
-                            content:{friend_id: my_id, friend_info: my_info}
-                        })
-                    },
-                    $push:{pending_friends:my_id}
-                })
+function add_friend_request(user, friend_id) {
+    debug("add_friend_request called", {user:user, f_id:friend_id})
+    var my_id = user._id
+    var add_self_friend_request = User.update(
+            {_id: my_id},
+            {$push:{friend_requests:fiend_id}})
+
+    var add_friend_pending = User.update(
+            {_id:fiend_id},
+            {
+                $set: {
+                    _comment: JSON.stringify({
+                        event_name:"new_friend_request",
+                        content:{friend_id: my_id, friend_info: user}
+                    })
+                },
+                $push:{pending_friends:my_id}
+            })
+    debug("add friend request", {q1:add_self_friend_request, q2:add_friend_pending})
     return Promise.all([
-        add_self_friend_request.lean().exec(),
-        add_friend_pending.lean().exec()
+        add_self_friend_request.exec(),
+        add_friend_pending.exec()
     ])
-
-
 }
 
-var User = mongoose.model('User', user_schema);
-var Conversation = mongoose.model('Conversation', conversation);
-
-mongoose.connect(config.db_connect_string);
 
 function user_findOne(obj, settings) {
     if(obj.password) {
@@ -150,11 +137,11 @@ function hash_pwd(pwd) {
 }
 
 module.exports = {
-    mongoose : mongoose,
+    // mongoose : mongoose,
     User : User,
     user_findOne : user_findOne,
     user_find_many: user_find_many,
     Conversation: Conversation,
     compare_password: compare_password,
-    update_field: update_field
+    update_field: update_field,
 }

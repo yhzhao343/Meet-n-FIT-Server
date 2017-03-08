@@ -8,17 +8,17 @@ module.exports = {
 }
 
 function validate_request(req, res, next) {
-    debug('validate_request', req.query)
+    // debug('validate_request', req.query)
     var token = req.query['x-access-token']
     // var key = (req.body && req.body.x_key) || (req.query && req.query.x_key) || req.headers['x-key'];
-    debug('validate_request', token)
+    // debug('validate_request', token)
     if (token) {
         var decoded = jwt.verify(token, config.secret, (err, decoded) => {
             if (err) {
                 debug('validate_request', 'failed to validate')
                 return res.json({ success: false, message: 'Failed to authenticate token.' });
             } else {
-                debug('validate_request_pass', decoded)
+                // debug('validate_request_pass', decoded)
                 req.self = decoded,
                 next();
             }
@@ -41,7 +41,7 @@ function validate_socket_connection(socket, next) {
                 return next(new Error('Authentication error'));
             } else {
                 socket._id = decoded._id
-                debug('validate_socket_connection', decoded)
+                // debug('validate_socket_connection', decoded)
                 return next();
             }
         })

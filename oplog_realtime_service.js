@@ -54,7 +54,7 @@ function self_event_extractor(doc) {
     if (doc.ns === "team_fit_test.users") {
         if(o) {
             var set = o['$set']
-            debug('oplog-self_action', set)
+            debug('oplog-self-action', set)
             if (set) {
                var raw_event = set['_comment']
                if(raw_event) {
