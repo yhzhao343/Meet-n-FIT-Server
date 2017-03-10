@@ -1,12 +1,13 @@
-var express = require('express');
-var db_service = require('./db_service');
-var router = express.Router();
-var config = require('./config/config')
-var log_service = require('./log_service')
-var jwt = require("jsonwebtoken")
-var Promise = require('bluebird')
+var express       = require('express');
+var db_service    = require('./db_service');
+var router        = express.Router();
+var config        = require('./config/config')
+var log_service   = require('./log_service')
+var jwt           = require("jsonwebtoken")
+var Promise       = require('bluebird')
 var realtime_serv = require('./oplog_realtime_service')
-var crypto = require('crypto');
+var crypto        = require('crypto');
+
 var debug = log_service.debug
 var update_field = db_service.update_field
 var compare_password = db_service.compare_password
@@ -26,6 +27,30 @@ router.post('/api/v1/refuse_friend', refuse_friend)
 
 router.post('/change_password', change_password)
 
+var default_retrieve_settings = {
+                __v:0,
+                friends:0,
+                password:0,
+                conversations:0,
+                pending_friends: 0,
+                friend_requests: 0,
+                _comment: 0,
+            }
+
+// var retry         = require('bluebird-retry');
+// function retry_update_n_times(query, n, interval, timeout) {
+//     return retry(() => {
+//         return query.exec().then(res => {
+//             if(res.nModified) {
+//                 return Promise.resolve(res);
+//             } else {
+//                 return Promise.reject(new Error('Update failed'));
+//             }
+//         })
+//     }, {'max_tries': n || 4, 'interval': interval || 2000, 'timeout': timeout || 10000})
+// }
+
+
 function delete_friend(req, res) {
     var my_id = req.self._id
     var to_be_deleted_friend_id = req.body.friend_id
@@ -33,19 +58,26 @@ function delete_friend(req, res) {
         {_id:my_id},
         {
             '$pull': {friends: to_be_deleted_friend_id},
-        }
+        },
+        {upsert: true}
     )
     var friend_action = db_service.User.update(
         {_id:to_be_deleted_friend_id},
         {
             '$pull': {friends:my_id},
-            '$set': {_comment: JSON.stringify({event_name:"del_friend", content: {friend_id: my_id}})}
-
-        }
+        },
+        {upsert: true}
     )
+    var del_friend_event = new db_service.Event({
+        name:"del_friend",
+        origin_id: my_id,
+        target_user_id: to_be_deleted_friend_id,
+        content: JSON.stringify({friend_id: my_id})
+    })
     Promise.all([
         self_action.exec(),
-        friend_action.exec()
+        friend_action.exec(),
+        del_friend_event.save(),
     ]).then(result => {
         res.json({success:true})
     }).catch(err => {
@@ -60,35 +92,36 @@ function comfirm_friend_request(req, res) {
         {
           '$pull': {pending_friends:to_be_comfimed_friend_id},
           '$push': {friends: to_be_comfimed_friend_id},
-        }
+        },
+        {upsert: true}
     )
     var friend_action = db_service.User.update(
         {_id:to_be_comfimed_friend_id},
         {
             '$pull': {friend_requests:my_id},
             '$push': {friends: my_id},
-            '$set': {_comment: JSON.stringify({event_name:"add_friend", content:{friend_id: my_id}})}
-        }
+            // '$set': {_comment: JSON.stringify({event_name:"add_friend", content:{friend_id: my_id}})}
+        },
+        {upsert: true}
     )
+
+
+    var comfirm_friend_event = new db_service.Event({
+        name:"add_friend",
+        origin_id: my_id,
+        target_user_id: to_be_comfimed_friend_id,
+        content: JSON.stringify({friend_id: my_id})
+    })
+
     Promise.all([
         self_action.exec(),
         friend_action.exec(),
-        db_service.user_findOne(
-            {_id:to_be_comfimed_friend_id},
-            {
-                __v:0,
-                friends:0,
-                password:0,
-                conversations:0,
-                pending_friends: 0,
-                friend_requests: 0
-            }
-        )
+        db_service.user_findOne({_id:to_be_comfimed_friend_id}, default_retrieve_settings),
+        comfirm_friend_event.save(),
     ]).then(result => {
         debug('confirm_friend_request', result)
-        // realtime_serv.add_whom_to_notify(req.self._id, [req.body.friend_id])
-        // realtime_serv.add_whom_to_notify(req.body.friend_id, [req.self._id])
-        res.json({success:true, friend_info:result[2]})
+        res.json({success:true, friend_info: result[2]})
+        // res.json({success:true, friend_info:result[2]})
     }).catch(err => {
         res.json({success:false})
     })
@@ -101,18 +134,27 @@ function refuse_friend(req, res) {
         {_id:my_id},
         {
           '$pull': {pending_friends:to_be_refused_friend_id},
-        }
+        },
+        {upsert: true}
     )
     var friend_action = db_service.User.update(
         {_id:to_be_refused_friend_id},
         {
             '$pull': {friend_requests:my_id},
-            '$set': {_comment: JSON.stringify({event_name:"refuse_friend_request", content:{friend_id: my_id}})}
-        }
+            // '$set': {_comment: JSON.stringify({event_name:"refuse_friend_request", content:{friend_id: my_id}})}
+        },
+        {upsert: true}
     )
+    var refuse_friend_event = new db_service.Event({
+        name:"refuse_friend_request",
+        origin_id: my_id,
+        target_user_id: to_be_refused_friend_id,
+        content: JSON.stringify({friend_id: my_id})
+    })
     Promise.all([
         self_action.exec(),
-        friend_action.exec()
+        friend_action.exec(),
+        refuse_friend_event.save(),
     ]).then(result => {
         res.json({success:true})
     }).catch(e => {
@@ -127,21 +169,29 @@ function cancel_friend_request(req, res) {
     debug('cancel_friend_request', {my_id: my_id, to_be_cancel: to_be_canceled_friend_id})
     var self_delete = db_service.User.update(
         {_id:my_id},
-        {
-            '$pull': {friend_requests:to_be_canceled_friend_id}
-        }
+        {'$pull': {friend_requests:to_be_canceled_friend_id}},
+        {upsert: true}
     )
     var friend_delete = db_service.User.update(
         {_id:to_be_canceled_friend_id},
         {
             '$pull': {pending_friends:my_id},
-            '$set': {_comment: JSON.stringify({event_name:"del_pending_friends", content: {friend_id:my_id}})}
+            // '$set': {_comment: JSON.stringify({event_name:"del_pending_friends", content: {friend_id:my_id}})}
 
-        }
+        },
+        {upsert: true}
     )
+    var cancel_friend_event = new db_service.Event({
+        name:"del_pending_friends",
+        origin_id: my_id,
+        target_user_id: to_be_canceled_friend_id,
+        content: JSON.stringify({friend_id: my_id})
+    })
+
     Promise.all([
         self_delete.exec(),
-        friend_delete.exec()
+        friend_delete.exec(),
+        cancel_friend_event.save()
     ])
     .then(result => {
         // debug('cancel_friend_request_query_result', res)
@@ -175,25 +225,6 @@ function get_friends_info(req, res) {
     })
 }
 
-// function get_id_info(req, res) {
-//     db_service.user_findOne({_id:req.body},
-//         {
-//             __v:0,
-//             friends:0,
-//             password:0,
-//             conversations:0,
-//             pending_friends: 0,
-//             friend_requests: 0
-//         }
-//     ).then(user_info => {
-//         if (user_info) {
-//             res.json({success:true, user_info: user_info})
-//         } else {
-//             res.json({success:false})
-//         }
-//     })
-// }
-
 function add_conversation(req, res) {
     var self_id = req.self._id
     var participants = req.body
@@ -206,13 +237,12 @@ function add_conversation(req, res) {
         if (conversation) {
             res.json({success:false})
         } else {
-            var new_conversation = {
+            new db_service.Conversation({
                 'name': name,
                 'sentences':[],
                 'participants':participants,
                 'last_update': new Date()
-            }
-            new db_service.Conversation(new_conversation)
+            })
             .save()
             .catch(log_service.error_logger_gen('Insert new conversation', err => {
                 res.json({ success: false, message: 'Server problem'});
@@ -229,6 +259,7 @@ function add_conversation(req, res) {
                 db_service.User.update(
                     {'_id': {'$in':result.participants}},
                     {'$push': {'conversations': result.name}},
+                    {upsert: true},
                     function(err, raw) {
                         if(err) {
                             debug('add_conversation_err', err)
@@ -255,37 +286,36 @@ function add_friend(req, res) {
     ]).then(vals => {
         var user = vals[0]
         var to_be_friend = vals[1]
-        // debug("add_friend", {user:user, to_be_friend: to_be_friend})
         if (!user || !to_be_friend) {
             //Should be impossible
             res.json({success: false, message: "you or your friend doesn not exist"})
         } else {
-            // add_friend_request(user, to_be_friend._id)
-            // user.add_friend(to_be_friend._id, user)
             var add_self_friend_request = db_service.User.update(
                     {_id: user._id},
-                    {$push:{friend_requests:to_be_friend._id}}
+                    {'$push':{friend_requests:to_be_friend._id}},
+                    {upsert: true}
                 )
             var add_friend_pending = db_service.User.update(
                     {_id: to_be_friend._id},
-                    {$push: {pending_friends: user._id}}
+                    {'$push': {pending_friends: user._id}},
+                        // '$set': {_comment: JSON.stringify({event_name:"new_friend_request", content:{friend_info: user}})},
+                        // '$set': {_comment: JSON.stringify({event_name:"new_friend_request", content:{friend_info: user}})}
+
+                    {upsert: true}
                 )
-            var update_comment = db_service.User.update(
-                    {_id: to_be_friend._id},
-                    {$set: {
-                            _comment: JSON.stringify({
-                                event_name:"new_friend_request",
-                                content:{friend_info: user}
-                            })
-                        }
-                    }
-                )
+            var add_friend_event = new db_service.Event({
+                name:"new_friend_request",
+                origin_id: user._id,
+                target_user_id: to_be_friend._id,
+                content: JSON.stringify({friend_info: user})
+            })
             Promise.all([
                 add_self_friend_request.exec(),
                 add_friend_pending.exec(),
-                update_comment.exec(),
+                add_friend_event.save(),
             ])
-            .then(() => {
+            .then((result) => {
+                debug("add_friend_result", result)
                 res.json({success: true, to_be_friend: to_be_friend})
             })
         }
@@ -387,18 +417,13 @@ function register_user(req, res) {
 function change_password(req, res) {
   var user_info = {
 	  name : req.body.name,
-//	  password : req.body.password,
-//	  new_password : req.body.new_password,
-//	  confirm_password : req.body.confirm_password
   }
     db_service.user_findOne(user_info)
       .then(user => {
         compare_password(user, req.body.password)
-         // user.compare_password(req.body.password)
            .then(function() {
             debug('change_password', "updating password")
 		    res.json({ success: true, message: 'Updated password' });
-	     // user.update_field({password: req.body.new_password})
          update_field(user, {password: req.body.new_password})
 	    })
         .catch(function() {

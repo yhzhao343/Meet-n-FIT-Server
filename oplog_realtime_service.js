@@ -1,7 +1,10 @@
 var config        = require('./config/config')
 var MongoOplog    = require('mongo-oplog')
-var oplog         = MongoOplog(config.oplog_connect_string)
 var debug         = require('./log_service').debug
+
+var user_oplog    = MongoOplog(config.oplog_connect_string, {ns: 'team_fit_test.users'})
+var event_oplog    = MongoOplog(config.oplog_connect_string, {ns: 'team_fit_test.events'})
+
 
 
 //dictionary of sockets
@@ -14,38 +17,61 @@ var whom_to_notify = {}
 
 // oplog.tail()
 
-oplog.on('update', doc => {
-    debug('oplog-update', doc)
+user_oplog.on('update', doc => {
+    debug('user-oplog', doc)
     //This is for one-on-one actions (e.g. add,delete friend)
-    var self_sock = client_sock_list[doc.o2._id]
-    if (self_sock) {
-        var event_info = self_event_extractor(doc)
-        if (event_info) {
-            if(event_info.event_name === 'del_friend') {
-                delete_whom_to_notify(doc.o2._id, [event_info.content.friend_id])
-                delete_whom_to_notify(event_info.content.friend_id, [doc.o2._id])
+    if (doc.o2) {
+        // var self_sock = client_sock_list[doc.o2._id]
+        // if (self_sock) {
+        //     var event_info = self_event_extractor(doc)
+        //     if (event_info) {
+        //         if(event_info.event_name === 'del_friend') {
+        //             delete_whom_to_notify(doc.o2._id, [event_info.content.friend_id])
+        //             delete_whom_to_notify(event_info.content.friend_id, [doc.o2._id])
 
-            } else if (event_info.event_name === 'add_friend') {
-                add_whom_to_notify(doc.o2._id, [event_info.content.friend_id])
-                add_whom_to_notify(event_info.content.friend_id, [doc.o2._id])
-            }
-            self_sock.emit(event_info.event_name, event_info.content)
+        //         } else if (event_info.event_name === 'add_friend') {
+        //             add_whom_to_notify(doc.o2._id, [event_info.content.friend_id])
+        //             add_whom_to_notify(event_info.content.friend_id, [doc.o2._id])
+        //         }
+        //         self_sock.emit(event_info.event_name, event_info.content)
+        //     }
+        // }
+        //This is for broadcast
+        var to_notify = whom_to_notify[doc.o2._id]
+        if(to_notify) {
+            //THere are people on this server that is worth getting notified when shit happens to doc.o2._id
+            var event_info = event_extractor(doc)
+            to_notify.forEach(to_be_notified_user => {
+                if (to_be_notified_user in client_sock_list) {
+                    if (event_info) {
+                        client_sock_list[to_be_notified_user].emit(event_info.event_name, event_info.content)
+                    }
+                }
+            })
         }
     }
+})
 
-
-    //This is for broadcast
-    var to_notify = whom_to_notify[doc.o2._id]
-    if(to_notify) {
-        //THere are people on this server that is worth getting notified when shit happens to doc.o2._id
-        var event_info = event_extractor(doc)
-        to_notify.forEach(to_be_notified_user => {
-            if (to_be_notified_user in client_sock_list) {
-                if (event_info) {
-                    client_sock_list[to_be_notified_user].emit(event_info.event_name, event_info.content)
-                }
+event_oplog.on('insert', doc => {
+    debug('event-oplog', doc)
+    var my_event = doc.o
+    if (my_event) {
+        var target_user_id = my_event.target_user_id
+        var self_sock = client_sock_list[target_user_id]
+        if (self_sock) {
+            var origin_id = my_event.origin_id
+            var event_name = my_event.name
+            var content = JSON.parse(my_event.content)
+            if (event_name == 'del_friend') {
+                delete_whom_to_notify(target_user_id, [content.friend_id])
+                delete_whom_to_notify(content.friend_id, [target_user_id])
+            } else if (event_name == 'add_friend') {
+                add_whom_to_notify(target_user_id, [content.friend_id])
+                add_whom_to_notify(content.friend_id, [target_user_id])
             }
-        })
+            debug('event-oplog-content', {name: event_name, origin_id: origin_id, content:content, target_user_id:target_user_id})
+            self_sock.emit(my_event.name, content)
+        }
     }
 })
 
@@ -127,7 +153,8 @@ function delete_whom_to_notify(name, friends) {
 }
 
 function start_watching() {
-    oplog.tail()
+    user_oplog.tail()
+    event_oplog.tail()
 }
 module.exports = {
     add_to_watch_list: add_to_watch_list,
