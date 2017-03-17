@@ -62,9 +62,17 @@ sio_serv.on('connection', socket => {
     debug('socketio on connection', socket.id)
     var _id = socket._id;
     realtime_serv.add_to_watch_list(_id, socket)
-    db_service.user_findOne({_id, _id}, {friends:1})
+    db_service.user_findOne({_id, _id}, {friends:1, conversations: 1})
     .then(user => {
         realtime_serv.add_whom_to_notify(user._id, user.friends)
+        return user
+    })
+    .then(user => {
+        debug("connection user: ", user)
+        db_service.conversation_find_many('_id', user.conversations, {sentences:0, last_update:0})
+        .then(conversation => {
+            realtime_serv.add_conversation_to_watchlist(conversation)
+        })
     })
 
 

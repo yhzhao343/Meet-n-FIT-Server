@@ -13,6 +13,7 @@ var client_friend_list = {}
 // dict
 var whom_to_notify = {}
 
+var conversation_watchlist = {}
 // oplog.tail()
 
 user_oplog.on('update', doc => {
@@ -40,19 +41,34 @@ event_oplog.on('insert', doc => {
     if (my_event) {
         var target_user_id = my_event.target_user_id
         var self_sock = client_sock_list[target_user_id]
-        if (self_sock) {
-            var origin_id = my_event.origin_id
-            var event_name = my_event.name
-            var content = JSON.parse(my_event.content)
-            if (event_name == 'del_friend') {
-                delete_whom_to_notify(target_user_id, [content.friend_id])
-                delete_whom_to_notify(content.friend_id, [target_user_id])
-            } else if (event_name == 'add_friend') {
-                add_whom_to_notify(target_user_id, [content.friend_id])
-                add_whom_to_notify(content.friend_id, [target_user_id])
+        var origin_id = my_event.origin_id
+        var event_name = my_event.name
+        var content = JSON.parse(my_event.content)
+
+        if (event_name == 'new_message') {
+            var target_conversation_id = target_user_id;
+            if (target_conversation_id in conversation_watchlist) {
+                conversation_watchlist[target_conversation_id].forEach(user_id => {
+                    if(user_id !== origin_id) {
+                        self_sock = client_sock_list[user_id]
+                        if (self_sock) {
+                            self_sock.emit(event_name, content)
+                        }
+                    }
+                })
             }
-            debug('event-oplog-content', {name: event_name, origin_id: origin_id, content:content, target_user_id:target_user_id})
-            self_sock.emit(my_event.name, content)
+        } else {
+            if (self_sock) {
+                if (event_name == 'del_friend') {
+                    delete_whom_to_notify(target_user_id, [content.friend_id])
+                    delete_whom_to_notify(content.friend_id, [target_user_id])
+                } else if (event_name == 'add_friend') {
+                    add_whom_to_notify(target_user_id, [content.friend_id])
+                    add_whom_to_notify(content.friend_id, [target_user_id])
+                }
+                debug('event-oplog-content', {name: event_name, origin_id: origin_id, content:content, target_user_id:target_user_id})
+                self_sock.emit(event_name, content)
+            }
         }
     }
 })
@@ -107,6 +123,12 @@ function delete_user_from_watch(name) {
     delete client_friend_list[name]
 }
 
+function add_conversation_to_watchlist(conversations_info) {
+    conversations_info.forEach(conversation_info => {
+        conversation_watchlist[conversation_info._id] = conversation_info.participants
+    })
+}
+
 function add_whom_to_notify(name, friends) {
     if (!client_friend_list[name]) {
         client_friend_list[name] = new Set()
@@ -142,6 +164,7 @@ module.exports = {
     add_to_watch_list: add_to_watch_list,
     delete_user_from_watch: delete_user_from_watch,
     add_whom_to_notify: add_whom_to_notify,
-    start_watching: start_watching
+    start_watching: start_watching,
+    add_conversation_to_watchlist: add_conversation_to_watchlist
 }
 

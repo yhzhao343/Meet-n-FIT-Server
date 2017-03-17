@@ -254,7 +254,18 @@ function send_new_message(req, res) {
     .then(result => {
         debug("send_new_message", result)
         res.json({success:true, message: message})
+        return true
     })
+    .then(result => {
+        var new_message_event = new db_service.Event({
+            name: 'new_message',
+            origin_id: message.sender,
+            target_user_id: conversation_id,
+            content: JSON.stringify(message)
+        })
+        return new_message_event.save()
+    })
+    //TODO add a new event here
 }
 
 function add_conversation(req, res) {
