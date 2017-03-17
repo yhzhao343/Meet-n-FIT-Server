@@ -19,6 +19,8 @@ router.post('/api/v1/add_friend', add_friend)
 router.post('/api/v1/delete_friend', delete_friend)
 
 router.post('/api/v1/get_friends_info', get_friends_info)
+router.post('/api/v1/get_conversations_info', get_conversations_info)
+router.post('/api/v1/send_new_message', send_new_message)
 router.post('/api/v1/cancel_friend_request', cancel_friend_request)
 router.post('/api/v1/add_conversation', add_conversation)
 router.post('/api/v1/comfirm_friend_request', comfirm_friend_request)
@@ -225,20 +227,49 @@ function get_friends_info(req, res) {
     })
 }
 
+function get_conversations_info(req, res) {
+    //TODO: retrieve all history chat for now, change to retrieve recent later
+    db_service.conversation_find_many('_id', req.body.conversations, {})
+    .then(conversations => {
+        res.json({success:true, conversations: conversations})
+    })
+    .catch(err => {
+        res.json({success:false})
+    })
+}
+
+function send_new_message(req, res) {
+    var conversation_id = req.body.conversation_id
+    var message = req.body.message
+    message.timestamp = new Date()
+    var query = db_service.Conversation.update(
+        {_id: conversation_id},
+        {
+            '$push': {sentences: message},
+            '$set': {last_update: message.timestamp}
+        },
+        {upsert: true}
+    )
+    query.lean().exec()
+    .then(result => {
+        debug("send_new_message", result)
+        res.json({success:true, message: message})
+    })
+}
+
 function add_conversation(req, res) {
     var self_id = req.self._id
     var participants = req.body
     participants.push(self_id)
-    var name = crypto.createHash('md5').update(participants.sort().join('')).digest('hex')
-
-    var query = db_service.Conversation.findOne({name:name})
+    // var name = crypto.createHash('md5').update(participants.sort().join('')).digest('hex')
+    participants = participants.sort();
+    var query = db_service.Conversation.findOne({participants:participants})
     query.lean().exec()
     .then(conversation => {
         if (conversation) {
             res.json({success:false})
         } else {
             new db_service.Conversation({
-                'name': name,
                 'sentences':[],
                 'participants':participants,
                 'last_update': new Date()
@@ -250,23 +281,26 @@ function add_conversation(req, res) {
             .then(result => {
                 debug('add_conversation', result)
                 res.json({
-                    name: result.name,
                     success: true,
-                    sentences:[],
-                    participants:result.participants,
-                    last_update: result.last_update
+                    conversation: {
+                        _id: result._id,
+                        sentences:[],
+                        participants:result.participants,
+                        last_update: result.last_update
+                    }
                 });
                 db_service.User.update(
-                    {'_id': {'$in':result.participants}},
-                    {'$push': {'conversations': result.name}},
-                    {upsert: true},
+                    {'_id': {'$in': result.participants}},
+                    {'$push': {'conversations': result._id}},
+                    {multi:true},
                     function(err, raw) {
                         if(err) {
                             debug('add_conversation_err', err)
                             debug('add_conversation_raw', raw)
+                        } else {
+                            debug('add_conversation', raw)
                         }
-                    }
-                )
+                    })
             })
         }
     })

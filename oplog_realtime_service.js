@@ -5,8 +5,6 @@ var debug         = require('./log_service').debug
 var user_oplog    = MongoOplog(config.oplog_connect_string, {ns: 'team_fit_test.users'})
 var event_oplog    = MongoOplog(config.oplog_connect_string, {ns: 'team_fit_test.events'})
 
-
-
 //dictionary of sockets
 var client_sock_list = {}
 var client_friend_list = {}
@@ -21,25 +19,9 @@ user_oplog.on('update', doc => {
     debug('user-oplog', doc)
     //This is for one-on-one actions (e.g. add,delete friend)
     if (doc.o2) {
-        // var self_sock = client_sock_list[doc.o2._id]
-        // if (self_sock) {
-        //     var event_info = self_event_extractor(doc)
-        //     if (event_info) {
-        //         if(event_info.event_name === 'del_friend') {
-        //             delete_whom_to_notify(doc.o2._id, [event_info.content.friend_id])
-        //             delete_whom_to_notify(event_info.content.friend_id, [doc.o2._id])
-
-        //         } else if (event_info.event_name === 'add_friend') {
-        //             add_whom_to_notify(doc.o2._id, [event_info.content.friend_id])
-        //             add_whom_to_notify(event_info.content.friend_id, [doc.o2._id])
-        //         }
-        //         self_sock.emit(event_info.event_name, event_info.content)
-        //     }
-        // }
-        //This is for broadcast
         var to_notify = whom_to_notify[doc.o2._id]
         if(to_notify) {
-            //THere are people on this server that is worth getting notified when shit happens to doc.o2._id
+            //THere are people on this server who wants to get notified when stuff happens to doc.o2._id
             var event_info = event_extractor(doc)
             to_notify.forEach(to_be_notified_user => {
                 if (to_be_notified_user in client_sock_list) {

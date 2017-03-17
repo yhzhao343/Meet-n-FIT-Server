@@ -36,7 +36,7 @@ var user_schema = new Schema({
             })
 
 var conversation = new Schema({
-                name: {type : String, unique: true},
+                // name: {type : String, unique: true},
                 // name: sort all participant's id, then concat. You
                 // can only have one conversation with one group of people
                 sentences :[{
@@ -46,8 +46,6 @@ var conversation = new Schema({
                 }],
                 participants: [String],
                 last_update: Date,
-                //ugly cheating way of monitoring changes
-                _comment: String
 })
 
 var event = new Schema({
@@ -112,6 +110,13 @@ function user_find_many(field, vals, settings) {
     return query.lean().exec().catch(db_error_logger)
 }
 
+function conversation_find_many(field, vals, settings) {
+    var query_json = {}
+    query_json[field] = {$in:vals}
+    var query = Conversation.find(query_json, settings||{})
+    return query.lean().exec().catch(db_error_logger)
+}
+
 
 function hash_pwd(pwd) {
     return crypto.createHmac('sha256', config.salt)
@@ -126,5 +131,6 @@ module.exports = {
     Conversation: Conversation,
     compare_password: compare_password,
     update_field: update_field,
-    Event: Event
+    Event: Event,
+    conversation_find_many: conversation_find_many
 }
