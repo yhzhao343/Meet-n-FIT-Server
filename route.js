@@ -39,19 +39,6 @@ var default_retrieve_settings = {
                 _comment: 0,
             }
 
-// var retry         = require('bluebird-retry');
-// function retry_update_n_times(query, n, interval, timeout) {
-//     return retry(() => {
-//         return query.exec().then(res => {
-//             if(res.nModified) {
-//                 return Promise.resolve(res);
-//             } else {
-//                 return Promise.reject(new Error('Update failed'));
-//             }
-//         })
-//     }, {'max_tries': n || 4, 'interval': interval || 2000, 'timeout': timeout || 10000})
-// }
-
 
 function delete_friend(req, res) {
     var my_id = req.self._id
