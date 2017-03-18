@@ -261,7 +261,7 @@ function send_new_message(req, res) {
             name: 'new_message',
             origin_id: message.sender,
             target_user_id: conversation_id,
-            content: JSON.stringify(message)
+            content: JSON.stringify({message: message, conversation_id: conversation_id})
         })
         return new_message_event.save()
     })
