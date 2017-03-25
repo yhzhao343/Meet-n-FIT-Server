@@ -55,9 +55,6 @@ var event = new Schema({
     content: String
 }, { capped: 4096 })
 
-var User = mongoose.model('User', user_schema);
-var Conversation = mongoose.model('Conversation', conversation);
-var Event = mongoose.model('Event', event);
 
 mongoose.connect(config.db_connect_string);
 
@@ -93,6 +90,10 @@ function update_field(user, key_value_pair) {
         debug(["update_field", JSON.stringify(key_value_pair)].join(' '), err)
     })
 }
+
+var User = mongoose.model('User', user_schema);
+var Conversation = mongoose.model('Conversation', conversation);
+var Event = mongoose.model('Event', event);
 
 function user_findOne(obj, settings) {
     if(obj.password) {
