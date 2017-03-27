@@ -28,6 +28,7 @@ router.post('/api/v1/refuse_friend', refuse_friend)
 // router.post('/api/v1/get_id_info', get_id_info)
 
 router.post('/change_password', change_password)
+router.post('/change_bio', change_bio)
 
 var default_retrieve_settings = {
                 __v:0,
@@ -430,6 +431,7 @@ function register_user(req, res) {
                         first_name: new_user.first_name,
                         last_name: new_user.last_name,
                         name: new_user.name,
+		        bio: "",
                         friends: [],
                         conversations: [],
                         pending_friends: [],
@@ -467,6 +469,21 @@ function change_password(req, res) {
       res.json({success:false})
     })
 }
+
+function change_bio(req, res) {
+  var user_info = {
+	  name : req.body.name,
+  }
+  db_service.user_findOne(user_info)
+    .then(user => {
+      res.json({ success: true, message: 'Updated bio' });
+      update_field(user, {bio: req.body.bio})
+    })
+    .catch(err => {
+      res.json({ success:false })
+    })
+}
+
 function login_user(req, res) {
     var user_info = {
         name : req.body.name,
@@ -493,6 +510,7 @@ function login_user(req, res) {
                         first_name: user.first_name,
                         last_name: user.last_name,
                         name: user.name,
+			bio: user.bio,
                         friends: user.friends,
                         conversations: user.conversations,
                         pending_friends: user.pending_friends,

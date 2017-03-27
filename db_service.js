@@ -15,6 +15,7 @@ var user_schema = new Schema({
                 email: String,
                 password: String,
                 online: Boolean,
+                bio: String,
                 //Your friend list
                 friends: [String],
                 //Friend requests pending your approval
@@ -62,6 +63,7 @@ user_schema.pre('save', function(next) {
     var user = this;
     user.password = hash_pwd(user.password);
     user.online = false;
+    user.bio = "";
     user.friends = [];
     user.conversations = [];
     user.token_allocation.strength = 0
