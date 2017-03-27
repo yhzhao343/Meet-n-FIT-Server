@@ -29,6 +29,7 @@ router.post('/api/v1/refuse_friend', refuse_friend)
 
 router.post('/change_password', change_password)
 router.post('/change_bio', change_bio)
+router.post('/change_token_allocation', change_token_allocation)
 
 var default_retrieve_settings = {
                 __v:0,
@@ -481,6 +482,20 @@ function change_bio(req, res) {
     })
     .catch(err => {
       res.json({ success:false })
+    })
+}
+
+function change_token_allocation(req, res) {
+  var user_info = {
+	  name: req.body.name,
+  }
+  db_service.user_findOne(user_info)
+    .then(user => {
+      res.json({ success: true, message: 'Updated token allocation' });
+      update_field(user, {token_allocation: req.body.token_allocation})
+    })
+    .catch(err => {
+      res.json({success: false })
     })
 }
 
