@@ -463,7 +463,7 @@ function change_password(req, res) {
 	    })
         .catch(function() {
             debug('change_password', "wrong password")
-		   res.json({ success: false, message: 'password incorrect' });
+		   res.json({ success: false, message: 'Password incorrect.' });
 	   })
     })
     .catch(err => {
