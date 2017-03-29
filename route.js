@@ -553,7 +553,14 @@ function get_nearby_users(req, res) {
   var location_coord = req.body.location.coordinates //current location of the user
   var radius = req.body.radius //radius to search, in miles
 
-  db_service.User.find({ loc: { $near:location_coord, $maxDistance:radius/3963 } })
+  var query = db_service.User.find({loc:{$near:location_coord, $maxDistance:radius/3963}})
+  query.lean().exec()
+    .then(function(result) {
+      res.json({success:true, nearby_users:result})
+    })
+    .catch(err => {
+      res.json({success:false})
+    })
 }
 
 module.exports = router

@@ -5,6 +5,7 @@ var config          = require('./config/config');
 var db_error_logger = require('./log_service').error_logger_gen('DB')
 var crypto          = require('crypto')
 var debug           = require('./log_service').debug
+var GeoJSON         = require('mongoose-geojson-schema');
 // var retry           = require('bluebird-retry');
 
 var Schema = mongoose.Schema;
@@ -23,7 +24,7 @@ var user_schema = new Schema({
                 //Your friend request
                 friend_requests:[String],
                 conversations: [String],
-                location: Point,
+                location: mongoose.Schema.Types.Point,
 
                 //ugly cheating way of monitoring changes
                 // _comment: String,

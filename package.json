@@ -10,6 +10,7 @@
     "jsonwebtoken": "^7.2.1",
     "localhost.daplie.com-certificates": "^1.2.4",
     "mongoose": "^4.7.7",
+    "mongoose-geojson-schema": "^2.1.2",
     "morgan": "^1.7.0",
     "socket.io": "^1.7.2"
   },
