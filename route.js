@@ -547,10 +547,7 @@ function login_user(req, res) {
 }
 
 function get_nearby_users(req, res) {
-  var user_info = {
-    name: req.body.name,
-  }
-  var location_coord = req.body.location.coordinates //current location of the user
+  var location_coord = req.body.current_location //current location of the user
   var radius = req.body.radius //radius to search, in miles
 
   var query = db_service.User.find({loc:{$near:location_coord, $maxDistance:radius/3963}})
