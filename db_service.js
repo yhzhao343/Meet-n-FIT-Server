@@ -23,6 +23,7 @@ var user_schema = new Schema({
                 //Your friend request
                 friend_requests:[String],
                 conversations: [String],
+                location: Point,
 
                 //ugly cheating way of monitoring changes
                 // _comment: String,
@@ -66,6 +67,7 @@ user_schema.pre('save', function(next) {
     user.bio = "";
     user.friends = [];
     user.conversations = [];
+    user.location = null;
     user.token_allocation.strength = 0
     user.token_allocation.outdoors = 0
     user.token_allocation.flexibility = 0

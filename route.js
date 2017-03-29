@@ -27,6 +27,8 @@ router.post('/api/v1/comfirm_friend_request', comfirm_friend_request)
 router.post('/api/v1/refuse_friend', refuse_friend)
 // router.post('/api/v1/get_id_info', get_id_info)
 
+router.post('/api/v1/get_nearby_users', get_nearby_users)
+
 router.post('/change_password', change_password)
 router.post('/change_bio', change_bio)
 router.post('/change_token_allocation', change_token_allocation)
@@ -40,7 +42,6 @@ var default_retrieve_settings = {
                 friend_requests: 0,
                 _comment: 0,
             }
-
 
 function delete_friend(req, res) {
     var my_id = req.self._id
@@ -75,6 +76,7 @@ function delete_friend(req, res) {
         res.json({success:false})
     })
 }
+
 function comfirm_friend_request(req, res) {
     var my_id = req.self._id
     var to_be_comfimed_friend_id = req.body.friend_id
@@ -194,6 +196,7 @@ function cancel_friend_request(req, res) {
     })
 
 }
+
 var default_retrieve_settings = {
                 __v:0,
                 friends:0,
@@ -305,7 +308,6 @@ function add_conversation(req, res) {
         }
     })
 }
-
 
 function add_friend(req, res) {
     Promise.all([
@@ -543,4 +545,15 @@ function login_user(req, res) {
         res.json({success:false})
     })
 }
+
+function get_nearby_users(req, res) {
+  var user_info = {
+    name: req.body.name,
+  }
+  var location_coord = req.body.location.coordinates //current location of the user
+  var radius = req.body.radius //radius to search, in miles
+
+  db_service.User.find({ loc: { $near:location_coord, $maxDistance:radius/3963 } })
+}
+
 module.exports = router
