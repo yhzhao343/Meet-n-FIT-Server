@@ -30,6 +30,7 @@ router.post('/api/v1/refuse_friend', refuse_friend)
 router.post('/api/v1/get_nearby_users', get_nearby_users)
 
 router.post('/change_password', change_password)
+router.post('/update_location', update_location)
 router.post('/change_bio', change_bio)
 router.post('/change_token_allocation', change_token_allocation)
 
@@ -470,6 +471,21 @@ function change_password(req, res) {
     })
     .catch(err => {
       res.json({success:false})
+    })
+}
+
+function update_location(req, res) {
+  debug("in route.js");
+  var user_info = {
+	  _id : req.body._id,
+  }
+    db_service.user_findOne(user_info)
+      .then(user => {
+        res.json({ success: true, message: 'updating location' });
+         update_field(user, {location: {type:"Point", coordinates:req.body.location}})
+    })
+    .catch(err => {
+      res.json({success:false, message: 'couldnt updated location'})
     })
 }
 
