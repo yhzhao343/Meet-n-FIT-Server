@@ -37,7 +37,7 @@ var user_schema = new Schema({
             		endurance: Number
         		}
             })
-
+user_schema.index({location: '2dsphere'});
 var conversation = new Schema({
                 // name: {type : String, unique: true},
                 // name: sort all participant's id, then concat. You
@@ -50,6 +50,8 @@ var conversation = new Schema({
                 participants: [String],
                 last_update: Date,
 })
+
+
 
 var event = new Schema({
     name: String,

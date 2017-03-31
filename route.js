@@ -566,12 +566,15 @@ function get_nearby_users(req, res) {
   var location_coord = req.body.current_location //current location of the user
   var radius = req.body.radius //radius to search, in miles
 
-  var query = db_service.User.find({loc:{$near:location_coord, $maxDistance:radius/3963}})
+  var query = db_service.User.find({location:{$near:{type:"Point", coordinates:location_coord}, $maxDistance:radius/3963}})
   query.lean().exec()
     .then(function(result) {
+      debug('get_nearby_users', result)
       res.json({success:true, nearby_users:result})
     })
     .catch(err => {
+      debug('ERROR: get_nearby_users', err)
+
       res.json({success:false})
     })
 }
