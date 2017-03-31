@@ -561,12 +561,36 @@ function login_user(req, res) {
         res.json({success:false})
     })
 }
-
+var near_by_user_info_to_be_retrieved = {
+    first_name: 1,
+    last_name: 1,
+    name: 1,
+    bio: 1,
+    location: 1,
+    token_allocation: 1,
+    online: 1
+}
 function get_nearby_users(req, res) {
   var location_coord = req.body.current_location //current location of the user
   var radius = req.body.radius //radius to search, in miles
-
-  var query = db_service.User.find({location:{$near:{type:"Point", coordinates:location_coord}, $maxDistance:radius/3963}})
+  if (! location_coord) {
+    res.json({success: false, info: "location missing"})
+    return
+  }
+  var query = db_service.User.find(
+    {
+        location:{
+            $near:{
+                $geometry: {
+                    type:"Point",
+                    coordinates:location_coord
+                },
+                $maxDistance:radius/3963
+            }
+        },
+    },
+    near_by_user_info_to_be_retrieved
+  )
   query.lean().exec()
     .then(function(result) {
       debug('get_nearby_users', result)
