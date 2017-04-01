@@ -44,7 +44,6 @@ event_oplog.on('insert', doc => {
         var origin_id = my_event.origin_id
         var event_name = my_event.name
         var content = JSON.parse(my_event.content)
-
         if (event_name == 'new_message') {
             var target_conversation_id = target_user_id;
             if (target_conversation_id in conversation_watchlist) {
@@ -65,7 +64,9 @@ event_oplog.on('insert', doc => {
                 } else if (event_name == 'add_friend') {
                     add_whom_to_notify(target_user_id, [content.friend_id])
                     add_whom_to_notify(content.friend_id, [target_user_id])
-                }
+                } //else if (event_name == 'new_conversation') {
+                    //Nothing to be done here
+                //}
                 debug('event-oplog-content', {name: event_name, origin_id: origin_id, content:content, target_user_id:target_user_id})
                 self_sock.emit(event_name, content)
             }

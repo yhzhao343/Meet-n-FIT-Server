@@ -271,7 +271,7 @@ function add_conversation(req, res) {
     query.lean().exec()
     .then(conversation => {
         if (conversation) {
-            res.json({success:false})
+            res.json({success:false, message: "already exists", _id:conversation._id})
         } else {
             new db_service.Conversation({
                 'sentences':[],
@@ -293,6 +293,20 @@ function add_conversation(req, res) {
                         last_update: result.last_update
                     }
                 });
+                realtime_serv.add_conversation_to_watchlist([result]);
+                result.participants.forEach(participant => {
+                    if(participant === result._id) {
+                        return
+                    } else {
+                        var new_conversation_event = new db_service.Event({
+                            name: "new_conversation",
+                            origin_id: self_id,
+                            target_user_id: participant,
+                            content: JSON.stringify({new_conversation: result})
+                        })
+                        new_conversation_event.save();
+                    }
+                })
                 db_service.User.update(
                     {'_id': {'$in': result.participants}},
                     {'$push': {'conversations': result._id}},
