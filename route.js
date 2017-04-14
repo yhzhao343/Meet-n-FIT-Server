@@ -447,7 +447,7 @@ function register_user (req, res) {
                   first_name: new_user.first_name,
                   last_name: new_user.last_name,
                   name: new_user.name,
-                bio: '',
+                  bio: '',
                   friends: [],
                   conversations: [],
                   pending_friends: [],
@@ -466,20 +466,20 @@ function register_user (req, res) {
 
 function change_password (req, res) {
   var user_info = {
-      name: req.body.name
+    name: req.body.name
   }
   db_service.user_findOne(user_info)
       .then(user => {
         compare_password(user, req.body.password)
            .then(function () {
              debug('change_password', 'updating password')
-            res.json({ success: true, message: 'Updated password' })
+             res.json({ success: true, message: 'Updated password' })
              update_field(user, {password: req.body.new_password})
-        })
+           })
         .catch(function () {
           debug('change_password', 'wrong password')
-           res.json({ success: false, message: 'Password incorrect.' })
-       })
+          res.json({ success: false, message: 'Password incorrect.' })
+        })
       })
     .catch(err => {
       res.json({success: false})
@@ -489,7 +489,7 @@ function change_password (req, res) {
 function update_location (req, res) {
   debug('in route.js')
   var user_info = {
-      _id: req.body._id
+    _id: req.body._id
   }
   db_service.user_findOne(user_info)
       .then(user => {
@@ -503,7 +503,7 @@ function update_location (req, res) {
 
 function change_bio (req, res) {
   var user_info = {
-      name: req.body.name
+    name: req.body.name
   }
   db_service.user_findOne(user_info)
     .then(user => {
@@ -517,7 +517,7 @@ function change_bio (req, res) {
 
 function change_token_allocation (req, res) {
   var user_info = {
-      name: req.body.name
+    name: req.body.name
   }
   db_service.user_findOne(user_info)
     .then(user => {
@@ -597,7 +597,7 @@ function get_nearby_users (req, res) {
             type: 'Point',
             coordinates: location_coord
           },
-          $maxDistance: radius / 3963
+          $maxDistance: radius * 1609.34
         }
       }
     },
@@ -610,7 +610,6 @@ function get_nearby_users (req, res) {
     })
     .catch(err => {
       debug('ERROR: get_nearby_users', err)
-
       res.json({success: false})
     })
 }
