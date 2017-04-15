@@ -574,6 +574,7 @@ function login_user (req, res) {
     })
 }
 var near_by_user_info_to_be_retrieved = {
+  _id: 1,
   first_name: 1,
   last_name: 1,
   name: 1,
