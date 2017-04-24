@@ -15,7 +15,7 @@ This repository contians the server side code of Meet-n-FIT. For the client side
 ### Known Bugs and Defects
 
 ## Install Guide
-The application consists of three part: database, server side and client side. This install guide will cover setting up the database, setting up and running the server side code and running the client side code in a web browser mobile simulator. NOTE: This install guide aims for setting up the environment for futher developing. Not for production deployment. This guide will primarily target macOS and Linux but should work on Windows with some modification.
+The application consists of three part: database, server side and client side. This install guide will cover setting up the database, setting up and running the server side code and running the client side code in a web browser mobile simulator. NOTE: This install guide aims for setting up the environment for futher developing. Not for production deployment. This guide will primarily target macOS and Linux but should work on Windows with some modification. This guide aims to guide people with limited coding experience to set up the projec
 
 ### Prerequisite:
 * Basic linux command lines skills.
@@ -50,16 +50,36 @@ For setting up the database, you need to first create an Amazon EC2 instance to 
         ```sh
         cp ./fit.pem ~/.ssh
         ```
-    4. In the terminal, run:
+    4. In the terminal, run the line below to ssh remote login to the EC2 instance:
         ```sh
         ssh -i ~/.ssh/fit.pem ubuntu@[your EC2 Public DNS (IPv4)]
         ```
 
-        You can copy your EC2 public DNS from the EC2 console. It should look like something like this: ec2-54-202-16-150.us-west-2.compute.amazonaws.com 
+        You can copy your EC2 public DNS from the EC2 console. It should look like something like this: ec2-54-202-16-150.us-west-2.compute.amazonaws.com.
         Choose okay if you see warning
 
         *Further readings/guide to refer o if you have trouble*:
             [Accessing linux instances](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html)
+* Install MongoDB on the EC2 instance
+    1. After you ssh into the EC2 instance run each of the lines below one y one:
+        Import the public key used by the package management system
+        ```sh
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+        ```
+
+        Create a list file for MongoDB
+        ```sh
+        echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+        ```
+
+        Reload local package database
+        ```sh
+        sudo apt-get install -y mongodb-org
+        ```
+
+
+
+
 
 
 
