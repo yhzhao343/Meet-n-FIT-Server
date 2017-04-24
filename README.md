@@ -61,25 +61,54 @@ For setting up the database, you need to first create an Amazon EC2 instance to 
         *Further readings/guide to refer o if you have trouble*:
             [Accessing linux instances](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html)
 * Install MongoDB on the EC2 instance
-    1. After you ssh into the EC2 instance run each of the lines below one y one:
-        Import the public key used by the package management system
+    After you ssh into the EC2 instance run each of the lines below one by one:
+
+    1. Import the public key used by the package management system
         ```sh
         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
         ```
 
-        Create a list file for MongoDB
+    2. Create a list file for MongoDB
         ```sh
         echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
         ```
 
-        Reload local package database
+    3. Reload local package database
         ```sh
         sudo apt-get install -y mongodb-org
         ```
 
+    4. Start the mongoDB server
+        ```sh
+        sudo service mongod start
+        ```
 
+        *Further readings/guide to refer o if you have trouble*:
+            [install mongoDB on Ubuntu](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/)
 
+* Configure the database
+    After ssh remote log in to the EC2 instance
 
+    1. log in to the database by running:
+        ```
+        mongo
+        ```
+    2. Create a new database:
+        ```
+        use team_fit_test
+        ```
+        you should see the prompt `swiched to db team_fit_test`
+
+    3. Create a new db user with user name: "FIT" and password:"7FITpassword" :
+        ```js
+        db.createUser(
+            {
+                user: "FIT",
+                pwd: "7FITpassword",
+                roles: ["readWrite"]
+            }
+        )
+        ```
 
 
 
