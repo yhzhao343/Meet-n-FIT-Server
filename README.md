@@ -36,24 +36,34 @@ For setting up the database, you need to first create an Amazon EC2 instance to 
     
     *Further readings/guide to refer to if you have trouble*:
         [get set up for amazon ec2](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/get-set-up-for-amazon-ec2.html)
+
         [EC2 get started](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html)
 
 * logging into the EC2 instance
-    1. In your AWS EC2 console, on the Instance screen,  click **fit** to goto security group settings. Click **inbound** and then **edit** to change inbound rules
+    1. In your AWS EC2 console, click **Running Instances** to go to the instance screen,  click **fit** to goto **security group settings**. Click **inbound** and then **edit** to change inbound rules
     2. Add a rule of protocol type ssh, port 22, source->Custom->My IP, click **save**
     3. Open a terminal window, cd into the Download folder. Run the following command to change the access permission of the file
-    ```sh
-    chmod 600 ./fit.pem
-    ```
+        ```sh
+        chmod 600 ./fit.pem
+        ```
 
-    And then copy the file to the ~/.ssh folder:
-    
-    ```sh
-    cp ./fit.pem ~/.ssh
-    ```
-In the terminal, run:
-    ssh -i ~/.ssh/fit.pem ubuntu@[your_EC2_address]
+        And then copy the file to the ~/.ssh folder:
+
+        ```sh
+        cp ./fit.pem ~/.ssh
+        ```
+    4. In the terminal, run:
+        ```sh
+        ssh -i ~/.ssh/fit.pem ubuntu@[your EC2 Public DNS (IPv4)]
+        ```
+
+        You can copy your EC2 public DNS from the EC2 console. It should look like something like this: ec2-54-202-16-150.us-west-2.compute.amazonaws.com 
         Choose okay if you see warning
+
+        *Further readings/guide to refer o if you have trouble*:
+            [Accessing linux instances](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html)
+
+
 
 
 
