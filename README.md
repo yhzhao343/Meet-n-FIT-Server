@@ -12,8 +12,24 @@ This repository contians the server side code of Meet-n-FIT. For the client side
     * [Setting up Server Code](#setting-up-server-code)
     * [Setting up Client Code](#setting-up-client-code)
 
-## Release Notes
+## Version 1.0 Release Notes
 ### New Software Features
+###### Account Management
+When a user downloads the Meet 'n' Fit app or visits the website for the first time, he must first create an account. An account requires a first name, last name, unique username, email, and password. It's perfectly okay for users to share duplicate first names, last names, or emails, because they can be identified by their unique username.
+When the user returns to the app after creating an account, he will use his username and password to log in. If he chooses the 'remember me' option, he will be logged in automatically on subsequent visits to the app or site.
+If the user wants to change his password, once logged in he can visit his Profile (described in the Profiles section) and clicking 'Settings' to view the Settings Page. This page will have a 'Change Password' option.
+###### Profiles
+Once a user has created an account and logged in, he can edit his profile to set himself apart from other Meet 'n' Fit users. There are two elements of a user's profile: **Bio** and **Fitness Preference**. 
+The **Bio** is simply a short blurb which can include anything that will help other users get to know him better. 
+**Fitness Preference** is the primary way for users to communicate their fitness interests. A user is given 10 tokens to allocate in any combination into five categories: Strength, Outdoors, Flexibility, Nutrition, and Endurance. For example, if a user has joined Meet 'n' Fit primarily to find hiking buddies, he might put all 10 of his tokens into the 'Outdoors' category. If he is more interested in all-around fitness, he might put 2 tokens into each category.
+A user can visit the Settings Page by viewing his own profile and clicking 'Settings'. This page allows him to log out or change his password, and contains placeholder links for several future features such as editing account name and email and toggling the messaging feature.
+A user can visit his friend's profiles from the Friends Page (described in the Friend Management section). On his friend's profiles he will see an additional option to send a message to that friend.
+###### Discover Page
+The primary feature of Meet 'n' Fit is the Discover Page. This is the first page a user sees when he logs into the app (or when he opens the app, if he has already logged in and used the remember me feature). This page shows a list of all of the nearby Meet 'n' Fit users. These users are labelled with their username, their fitness preference, and their distance. This allows a user to quickly evaluate which nearby users share similar fitness interests, while maintaining some anonymity until both users have agreed to be friends. If a user sees someone whose fitness preferences align with his own, he can send that user friend request. This feature will be discussed in more detail in the Friend Management section.
+A user also has the option to view nearby users in a Map view, in order to see more clearly where they are located relative to him. In this view, users are marked with pins which display the relevant username when tapped or hovered over.
+
+###### Friend Management
+###### Messaging
 ### Known Bugs and Defects
 
 ## Install Guide
