@@ -42,9 +42,9 @@ For setting up the database, you need to first create an Amazon EC2 instance to 
     1. In your AWS EC2 console, on the Instance screen,  click **fit** to goto security group settings. Click **inbound** and then **edit** to change inbound rules
     2. Add a rule of protocol type ssh, port 22, source->Custom->My IP, click **save**
     3. Open a terminal window, cd into the Download folder. Run the following command to change the access permission of the file
-            `chmod 600 ./fit.pem`
+            ```chmod 600 ./fit.pem```
     And then copy the file to the ~/.ssh folder:
-            `cp ./fit.pem ~/.ssh`
+            ```cp ./fit.pem ~/.ssh```
 In the terminal, run:
     ssh -i ~/.ssh/fit.pem ubuntu@[your_EC2_address]
         Choose okay if you see warning
