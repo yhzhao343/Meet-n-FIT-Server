@@ -35,9 +35,7 @@ For setting up the database, you need to first create an Amazon EC2 instance to 
     8. A confirmation page lets you know that your instance is launching. Choose **View Instances** to close the confirmation page and return to the console.
     
     *Further readings/guide to refer to if you have trouble*:
-        [get set up for amazon ec2](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/get-set-up-for-amazon-ec2.html)
-
-        [EC2 get started](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html)
+        [get set up for amazon ec2](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/get-set-up-for-amazon-ec2.html) and [EC2 get started](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html)
 
 * logging into the EC2 instance
     1. In your AWS EC2 console, click **Running Instances** to go to the instance screen,  click **fit** to goto **security group settings**. Click **inbound** and then **edit** to change inbound rules
