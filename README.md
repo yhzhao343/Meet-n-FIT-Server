@@ -129,9 +129,30 @@ For setting up the database, you need to first create an Amazon EC2 instance to 
     7. Log out the remote ssh session by running `exit`
     
 ### Setting up Server Code:
-    1. Install node.js. Go to [nodejs.org](https://nodejs.org/en/) to download and install the latest version of node.js(7.9.0 when this document is written). Follow the prompt of the installer to install
 
-    2. 
+1. **Installing Running Environment:** The code runs on node.js. To install node.js. Go to [nodejs.org](https://nodejs.org/en/) to download and install the latest version of node.js(7.9.0 when this document is written). Follow the prompt of the installer to install
+
+2. **Download the source code:** The source code should be provided in a zip file. Just unzip the folder. Or you can download it from our repository. Open a terminal, `cd [your desired saving location]` , run `git clone https://github.com/yhzhao343/Meet-n-FIT-Server.git`. You should see a Meet-n-FIT-Server folder. Also, copy the provided `config` folder into the `Meet-n-FIT-Server` folder. 
+
+3. **Change the config file to point to the new dataase:** In the config folder, in the file `config.js`, you will see a json object that contains the database connection string. Change the field 'db_connect_string' and 'oplog_connect_string' to reflect your current database address:
+
+```js
+{
+    'db_connect_string': 'mongodb://[user_name]:[password]@[EC2 instance DNS address]/[db_name]',
+    'oplog_connect_string': 'mongodb://[EC2 instance DNS address]/local'
+}
+```
+
+for instance:
+
+```js
+{
+    'db_connect_string': 'mongodb://FIT:7FITpassword@ec2-54-202-16-150.us-west-2.compute.amazonaws.com/team_fit_test',
+    'oplog_connect_string': 'mongodb://ec2-54-202-16-150.us-west-2.compute.amazonaws.com/local',
+}
+```
+
+4. **Installing library dependencies** `cd` into the `Meet-n-FIT-Server` folder
 
 ### Setting up Client Code
 
