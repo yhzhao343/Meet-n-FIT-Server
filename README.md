@@ -9,6 +9,8 @@ This repository contians the server side code of Meet-n-FIT. For the client side
 * [Install Guide](#install-guide)
     * [Prerequisite](#prerequisite)
     * [Setting up the Database](#setting-up-the-database)
+    * [Setting up Server Code](#setting-up-server-code)
+    * [Setting up Client Code](#setting-up-client-code)
 
 ## Release Notes
 ### New Software Features
@@ -126,8 +128,12 @@ For setting up the database, you need to first create an Amazon EC2 instance to 
 
     7. Log out the remote ssh session by running `exit`
     
-###Setting up Server Code
-###Setting up Client Code
+### Setting up Server Code:
+    1. Install node.js. Go to [nodejs.org](https://nodejs.org/en/) to download and install the latest version of node.js(7.9.0 when this document is written). Follow the prompt of the installer to install
+
+    2. 
+
+### Setting up Client Code
 
 
 
