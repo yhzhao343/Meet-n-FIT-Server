@@ -93,6 +93,7 @@ For setting up the database, you need to first create an Amazon EC2 instance to 
         ```
         mongo
         ```
+
     2. Create a new database:
         ```
         use team_fit_test
@@ -109,6 +110,24 @@ For setting up the database, you need to first create an Amazon EC2 instance to 
             }
         )
         ```
+
+    4. exit mongo by pressing `ctrl+c`
+    5. Enable oplog of the database. Run `sudo nano /etc/mongod.conf` to change the setting of mongoDB. Find the line `#replication` and change it to:
+        ```
+        replication:
+          replSetName: rs0
+          oplogSizeMB: 4096
+        ```
+
+    6. Restart mongoDB:
+        ```
+        sudo service mongod restart
+        ```
+
+    7. Log out the remote ssh session by running `exit`
+    
+###Setting up Server Code
+###Setting up Client Code
 
 
 
