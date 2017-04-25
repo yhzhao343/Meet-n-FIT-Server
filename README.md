@@ -42,6 +42,8 @@ In order to minimize the number of harassing messages sent through Meet 'n' Fit,
     Currently, users that you are already friends with are still shown on the discover page. Because this page is for discovering new friends, these users should be filtered out.
 - **Limited Information Shown on Map Page**
     The discover page's map view only shows the usernames of nearby users. Ideally, it should show all the information shown on the list view, and should include the ability to add each user as a friend. This information could possible be shown on a popup element on the bottom of the screen.
+- **First message in conversation is sometimes not received**
+    When a user begins a conversation with another user, the first message may not be received until the message recepient logs out and in again. This bug is nondeterministic and we haven't been able to find the cause.
 
 ## Install Guide
 The application consists of three part: database, server side and client side. This install guide will cover setting up the database, setting up and running the server side code and running the client side code in a web browser mobile simulator. NOTE: This install guide aims for setting up the environment for futher developing. Not for production deployment. This guide will primarily target macOS and Linux but should work on Windows with some modification. This guide aims to guide people with limited coding experience to set up the project
