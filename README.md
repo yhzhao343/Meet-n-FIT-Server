@@ -149,7 +149,7 @@ For setting up the database, you need to first create an Amazon EC2 instance to 
     
 ### Setting up Server Code:
 
-1. **Installing Runtime Environment:** The code runs on node.js. To install node.js. Go to [nodejs.org](https://nodejs.org/en/) to download and install the latest version of node.js(7.9.0 when this document is written). Follow the prompt of the installer to install
+1. **Installing Runtime Environment:** The code runs on node.js. To install node.js. Go to [nodejs.org](https://nodejs.org/en/) to download and install the latest version of node.js(7.9.0 when this document is written). Follow the prompt of the installer to install. The client side code runs in a broweser. It is recommanded that you install the latest version of google Chrome.
 
 2. **Download the source code:** The source code should be provided in a zip file. Just unzip the folder. Or you can download it from our repository. Open a terminal, `cd [your desired saving location]` , run `git clone https://github.com/yhzhao343/Meet-n-FIT-Server.git`. You should see a Meet-n-FIT-Server folder. Also, copy the provided `config` folder into the `Meet-n-FIT-Server` folder. 
 
