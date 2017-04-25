@@ -146,7 +146,7 @@ For setting up the database, you need to first create an Amazon EC2 instance to 
     
 ### Setting up Server Code:
 
-1. **Installing Running Environment:** The code runs on node.js. To install node.js. Go to [nodejs.org](https://nodejs.org/en/) to download and install the latest version of node.js(7.9.0 when this document is written). Follow the prompt of the installer to install
+1. **Installing Runtime Environment:** The code runs on node.js. To install node.js. Go to [nodejs.org](https://nodejs.org/en/) to download and install the latest version of node.js(7.9.0 when this document is written). Follow the prompt of the installer to install
 
 2. **Download the source code:** The source code should be provided in a zip file. Just unzip the folder. Or you can download it from our repository. Open a terminal, `cd [your desired saving location]` , run `git clone https://github.com/yhzhao343/Meet-n-FIT-Server.git`. You should see a Meet-n-FIT-Server folder. Also, copy the provided `config` folder into the `Meet-n-FIT-Server` folder. 
 
@@ -168,10 +168,44 @@ for instance:
 }
 ```
 
-4. **Installing library dependencies** `cd` into the `Meet-n-FIT-Server` folder
+4. **Install library dependencies:** `cd` into the `Meet-n-FIT-Server` folder and run:
+    ```sh
+    npm install
+    ```
+should install all the dependencies specified in the `package.json` file
+
+5. **Run the server:**
+    ```sh
+    sudo node ./server.js
+    ```
+    If you see error messages about missing some library (missing xxx), run `npm install xxx`
+
+6. **Inspecting server side debug info and trouble shooting:**: Open a new terminal window and `cd` to your project folder, run
+    ```sh
+    tail -f ./config/debug.log
+    ```
+You should see the server debug log in real time. You should see a message `server running at port 443` if successful. However, if you see message like `mongo cannot to server`, that may means that you are not connected to the internet or you have a bad server connection string.
 
 ### Setting up Client Code
+1. **Install Runtime Environment:** The code also runs on node.js. If you have already installed node.js in setting up the server side. You don't need to do anything. If you haven't, follow the install Runtime Environment guide in setting up the server side code to install.
 
+2. **Download the source code:** The source code should be provided in a zip file. Just unzip the folder. Or you can download it from our repository. Open a terminal, `cd [your desired saving location]` , run `git clone https://github.com/yhzhao343/Meet-n-FIT-Client.git`. You should see a Meet-n-FIT-Client folder.
+
+3. **Install library dependencies:** `cd` into the `Meet-n-FIT-Client` folder and run:
+    ```sh
+    npm install
+    ```
+should install all the dependencies specified in the `package.json` file
+
+4. **Run the client side code:** Make sure the server is running first 
+    ```
+    ionic serve
+    ```
+    If you want to run multiple instances of the app, run `ionic serve` with the `-p [port number]` option multiple times. Make sure the `[port number]` needs to be larger than 8000 and different each time. For example, for running two instances of the app:
+    ```
+    ionic serve -p 8081
+    ionic serve -p 8080
+    ```
 
 
 
