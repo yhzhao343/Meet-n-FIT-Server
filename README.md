@@ -73,7 +73,10 @@ For setting up the database, you need to first create an Amazon EC2 instance to 
         ssh -i ~/.ssh/fit.pem ubuntu@[your EC2 Public DNS (IPv4)]
         ```
 
-        You can copy your EC2 public DNS from the EC2 console. It should look like something like this: ec2-54-202-16-150.us-west-2.compute.amazonaws.com.
+        You can copy your EC2 public DNS from the EC2 console. It should look like something like this: ec2-54-202-16-150.us-west-2.compute.amazonaws.com. For example:
+        ```
+        ssh -i ~/.ssh/fit.pem ubuntu@ec2-54-202-16-150.us-west-2.compute.amazonaws.com
+        ```
         Choose okay if you see warning
 
         *Further readings/guide to refer o if you have trouble*:
