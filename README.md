@@ -183,7 +183,7 @@ should install all the dependencies specified in the `package.json` file
     ```
     If you see error messages about missing some library (missing xxx), run `npm install xxx`
 
-6. **Inspecting server side debug info and trouble shooting:**: Open a new terminal window and `cd` to your project folder, run
+6. **Inspecting server side debug info and trouble shooting:** Open a new terminal window and `cd` to your project folder, run
     ```sh
     tail -f ./config/debug.log
     ```
