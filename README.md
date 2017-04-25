@@ -42,7 +42,7 @@ The application consists of three part: database, server side and client side. T
 
 ### Setting up the database
 For setting up the database, you need to first create an Amazon EC2 instance to host the database, then ssh remote login in to the instance, and then install mongoDB on the instance
-* Starting an AWS EC2 Instance to host the database
+* **Starting an AWS EC2 Instance to host the database**
     1. Login into your AWS account
     2. From the console dashboard, **choose Launch Instance**
     3. The **Choose an Amazon Machine Image (AMI)** page shows server OS options. Select **Ubuntu Server 16.04 LTS**. Click Select.
@@ -55,7 +55,7 @@ For setting up the database, you need to first create an Amazon EC2 instance to 
     *Further readings/guide to refer to if you have trouble*:
         [get set up for amazon ec2](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/get-set-up-for-amazon-ec2.html) and [EC2 get started](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html)
 
-* logging into the EC2 instance
+* **logging into the EC2 instance**
     1. In your AWS EC2 console, click **Running Instances** to go to the instance screen,  click **fit** to goto **security group settings**. Click **inbound** and then **edit** to change inbound rules
     2. Add a rule of protocol type ssh, port 22, source->Custom->My IP, click **save**
     3. Open a terminal window, cd into the Download folder. Run the following command to change the access permission of the file
@@ -81,7 +81,7 @@ For setting up the database, you need to first create an Amazon EC2 instance to 
 
         *Further readings/guide to refer o if you have trouble*:
             [Accessing linux instances](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html)
-* Install MongoDB on the EC2 instance
+* **Install MongoDB on the EC2 instance**
     After you ssh into the EC2 instance run each of the lines below one by one:
 
     1. Import the public key used by the package management system
@@ -107,7 +107,7 @@ For setting up the database, you need to first create an Amazon EC2 instance to 
         *Further readings/guide to refer o if you have trouble*:
             [install mongoDB on Ubuntu](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/)
 
-* Configure the database
+* **Configure the database**
     After ssh remote log in to the EC2 instance
 
     1. log in to the database by running:
