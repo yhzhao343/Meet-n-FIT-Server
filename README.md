@@ -33,7 +33,7 @@ A user also has the option to view nearby users in a Map view, in order to see m
 ### Known Bugs and Defects
 
 ## Install Guide
-The application consists of three part: database, server side and client side. This install guide will cover setting up the database, setting up and running the server side code and running the client side code in a web browser mobile simulator. NOTE: This install guide aims for setting up the environment for futher developing. Not for production deployment. This guide will primarily target macOS and Linux but should work on Windows with some modification. This guide aims to guide people with limited coding experience to set up the projec
+The application consists of three part: database, server side and client side. This install guide will cover setting up the database, setting up and running the server side code and running the client side code in a web browser mobile simulator. NOTE: This install guide aims for setting up the environment for futher developing. Not for production deployment. This guide will primarily target macOS and Linux but should work on Windows with some modification. This guide aims to guide people with limited coding experience to set up the project
 
 ### Prerequisite:
 * Basic linux command lines skills.
